@@ -4,12 +4,12 @@ resource "aws_kms_key" "bucket" {
   description             = "Encryption key for bucket ${local.bucket_name}"
   deletion_window_in_days = var.key_recovery_period
   enable_key_rotation     = true
-  policy = templatefile("${path.module}/templates/key-policy.yaml.tftpl", {
+  policy = jsonencode(yamldecode(templatefile("${path.module}/templates/key-policy.yaml.tftpl", {
     account : data.aws_caller_identity.identity.account_id
     bucket : local.bucket_name
     partition : data.aws_partition.current.partition
     principals : var.allowed_principals
-  })
+  })))
 
   tags = var.tags
 }
@@ -18,7 +18,7 @@ resource "aws_kms_alias" "bucket" {
   for_each = var.encryption_key_arn != null ? toset([]) : toset(["this"])
 
   name          = "alias/${local.bucket_name}"
-  target_key_id = each.value.id
+  target_key_id = aws_kms_key.bucket["this"].arn
 }
 
 module "this" {
@@ -28,10 +28,10 @@ module "this" {
   bucket        = local.bucket_name
   force_destroy = var.force_delete
 
-  bucket_policy = templatefile("${path.module}/templates/bucket-policy.yaml.tftpl", {
+  bucket_policy = jsonencode(yamldecode(templatefile("${path.module}/templates/bucket-policy.yaml.tftpl", {
     partition : data.aws_partition.current.partition
     bucket : local.bucket_name
-  })
+  })))
 
   lifecycle_configuration = [{
     id     = "state"
