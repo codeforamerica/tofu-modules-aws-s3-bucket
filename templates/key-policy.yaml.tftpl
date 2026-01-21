@@ -22,15 +22,15 @@ Statement:
       kms:EncryptionContext:aws:s3:arn:
       - "arn:${partition}:s3:::${bucket}"
       - "arn:${partition}:s3:::${bucket}/*"
-{% if length(principals) > 0 }
+{% if length(principals) > 0 ~}
 - Sid: Allow other resources to use the key
   Effect: Allow
   Principal:
     AWS:
-    {% for principal in principals }
+    {% for principal in principals ~}
     - "${principal}"
-    %{ endfor }
+    {% endfor ~}
   Action:
   - kms:GenerateDataKey
   - kms:Decrypt
-{% endif }
+{% endif ~}
