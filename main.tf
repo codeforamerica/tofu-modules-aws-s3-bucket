@@ -4,7 +4,7 @@ resource "aws_kms_key" "bucket" {
   description             = "Encryption key for bucket ${local.bucket_name}"
   deletion_window_in_days = var.key_recovery_period
   enable_key_rotation     = true
-  policy = templatefile("${path.module}/templates/key-policy.json.tftpl", {
+  policy = templatefile("${path.module}/templates/key-policy.yaml.tftpl", {
     account : data.aws_caller_identity.identity.account_id
     bucket : local.bucket_name
     partition : data.aws_partition.current.partition
