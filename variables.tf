@@ -67,11 +67,6 @@ variable "noncurrent_version_expiration_days" {
     condition     = var.noncurrent_version_expiration_days > 0
     error_message = "Noncurrent version expiration days must be greater than 0."
   }
-
-  validation {
-    condition     = var.noncurrent_version_expiration_days <= var.abort_incomplete_multipart_upload_days
-    error_message = "Noncurrent version expiration days must be less than or equal to the abort incomplete multipart upload days."
-  }
 }
 
 variable "storage_class_transitions" {
