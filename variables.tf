@@ -16,6 +16,7 @@ variable "allowed_principals" {
     grant access to other resources that need to use the key, such as ECS task
     roles.
     EOT
+  default     = []
 }
 
 variable "encryption_key_arn" {
