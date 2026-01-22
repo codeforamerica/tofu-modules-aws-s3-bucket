@@ -34,6 +34,21 @@ To update the source for this module, pass `-upgrade` to `tofu init`:
 tofu init -upgrade
 ```
 
+### Malware protection
+
+When `enable_malware_protection` is set to `true` (the default), the module will
+create a [GuardDuty Malware Protection][guardduty-malware] plan, along with the
+neccassry IAM role for it to access the created bucket.
+
+When new objects are uploaded to the bucket, they will be tagged with
+`GuardDutyMalwareScanStatus` which can have one of the following values:
+`ACCESS_DENIED`, `FAILED`, `NO_THREATS_FOUND`, `THREATS_FOUND`, and
+`UNSUPPORTED`. For more information on what these values mean, see the
+[documentation on potential scan status][scan-statuses].
+
+You can use [Amazon EventBridge rules][malware-eventbridge] to respond
+appropraitly to different scan results.
+
 ## Inputs
 
 | Name                                   | Description                                                                                                                                               | Type           | Default                                         | Required |
@@ -74,12 +89,13 @@ different storage classes, see the [Amazon S3 documentation][storage-class].
 
 ## Outputs
 
-| Name               | Description                                                                     | Type     |
-| ------------------ | ------------------------------------------------------------------------------- | -------- |
-| bucket_name        | Name of the created bucket.                                                     | `string` |
-| bucket_arn         | Full ARN of the created bucket.                                                 | `string` |
-| bucket_domain_name | Domain name of the created bucket, in the format `bucketname.s3.amazonaws.com`. | `string` |
-| kms_key_arn        | ARN of the KMS key used for bucket encryption.                                  | `string` |
+| Name                        | Description                                                                     | Type     |
+| --------------------------- | ------------------------------------------------------------------------------- | -------- |
+| bucket_name                 | Name of the created bucket.                                                     | `string` |
+| bucket_arn                  | Full ARN of the created bucket.                                                 | `string` |
+| bucket_domain_name          | Domain name of the created bucket, in the format `bucketname.s3.amazonaws.com`. | `string` |
+| kms_key_arn                 | ARN of the KMS key used for bucket encryption.                                  | `string` |
+| malware_protection_plan_arn | ARN of the GuardDuty malware protection plan, if malware protection is enabled. | `string` |
 
 ## Contributing
 
@@ -88,6 +104,9 @@ repository.
 
 [badge-release]: https://img.shields.io/github/v/release/codeforamerica/tofu-modules-aws-s3-uploads-bucket?logo=github&label=Latest%20Release
 [contributing]: CONTRIBUTING.md
+[guardduty-malware]: https://docs.aws.amazon.com/guardduty/latest/ug/configuring-malware-protection-for-s3-guardduty.html
 [latest-release]: https://github.com/codeforamerica/tofu-modules-aws-s3-uploads-bucket/releases/latest
+[malware-eventbridge]: https://docs.aws.amazon.com/guardduty/latest/ug/monitor-with-eventbridge-s3-malware-protection.html
+[scan-statuses]: https://docs.aws.amazon.com/guardduty/latest/ug/monitoring-malware-protection-s3-scans-gdu.html#s3-object-scan-result-value-malware-protection
 [storage-class]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html
 [storage_class_transitions]: #storage_class_transitions
