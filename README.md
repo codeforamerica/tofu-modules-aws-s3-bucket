@@ -1,6 +1,6 @@
 # AWS S3 Uploads Bucket Module
 
-[![Main Checks][badge-checks]][code-checks] [![GitHub Release][badge-release]][latest-release]
+[![GitHub Release][badge-release]][latest-release]
 
 This module creates an S3 bucket for file uploads. The bucket is configured with
 logging, encryption, verisioning and a lifecycle configuration.
@@ -43,6 +43,7 @@ tofu init -upgrade
 | project                                | Project that these resources are supporting. This is used in the prefix to all resource names.                                                            | `string`       | n/a                                             | yes      |
 | abort_incomplete_multipart_upload_days | Number of days to abort incomplete multipart uploads.                                                                                                     | `number`       | `7`                                             | no       |
 | allowed_principals                     | List of AWS principal ARNs to allow to use the KMS key. This is used to grant access to other resources that need to use the key, such as ECS task roles. | `list(string)` | `[]`                                            | no       |
+| enable_malware_protection              | Whether to enable malware protection for the bucket using GuardDuty. This will create a new IAM role and GuardDuty malware protection plan.               | `bool`         | `true`                                          | no       |
 | encryption_key_arn                     | ARN of the KMS key to use for S3 bucket encryption. If not provided, a new KMS key will be created.                                                       | `string`       | `null`                                          | no       |
 | environment                            | The environment for the deployment. This is used in the prefix to all resource names.                                                                     | `string`       | `"development"`                                 | no       |
 | force_delete                           | Whether to force delete the bucket and its contents. Must be set to `true` _and_ applied before the bucket can be deleted.                                | `bool`         | `false`                                         | no       |
@@ -85,9 +86,7 @@ different storage classes, see the [Amazon S3 documentation][storage-class].
 Follow the [contributing guidelines][contributing] to contribute to this
 repository.
 
-[badge-checks]: https://github.com/codeforamerica/tofu-modules-aws-s3-uploads-bucket/actions/workflows/main.yaml/badge.svg
 [badge-release]: https://img.shields.io/github/v/release/codeforamerica/tofu-modules-aws-s3-uploads-bucket?logo=github&label=Latest%20Release
-[code-checks]: https://github.com/codeforamerica/tofu-modules-aws-s3-uploads-bucket/actions/workflows/main.yaml
 [contributing]: CONTRIBUTING.md
 [latest-release]: https://github.com/codeforamerica/tofu-modules-aws-s3-uploads-bucket/releases/latest
 [storage-class]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html

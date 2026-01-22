@@ -19,6 +19,15 @@ variable "allowed_principals" {
   default     = []
 }
 
+variable "enable_malware_protection" {
+  type        = bool
+  description = <<-EOT
+    Whether to enable malware protection for the bucket using GuardDuty. This
+    will create a new IAM role and GuardDuty malware protection plan.
+    EOT
+  default     = true
+}
+
 variable "encryption_key_arn" {
   type        = string
   description = <<-EOT
