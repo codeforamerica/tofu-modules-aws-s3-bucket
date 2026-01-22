@@ -20,3 +20,11 @@ output "kms_key_arn" {
   description = "ARN of the KMS key used for bucket encryption."
   value       = local.kms_key_arn
 }
+
+output "malware_protection_plan_arn" {
+  description = <<-EOT
+    ARN of the GuardDuty malware protection plan, if malware protection is
+    enabled.
+    EOT
+  value       = var.enable_malware_protection ? aws_guardduty_malware_protection_plan.this["this"].arn : null
+}
