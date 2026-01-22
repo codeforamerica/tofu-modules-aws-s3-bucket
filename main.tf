@@ -11,7 +11,7 @@ resource "aws_kms_key" "bucket" {
     principals : var.allowed_principals
   })))
 
-  tags = var.tags
+  tags = local.tags
 }
 
 resource "aws_kms_alias" "bucket" {
@@ -61,5 +61,5 @@ module "this" {
     target_prefix = "${local.logs_path}/s3accesslogs/${local.bucket_name}"
   }
 
-  tags = var.tags
+  tags = local.tags
 }
