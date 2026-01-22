@@ -21,25 +21,37 @@ variable "allowed_principals" {
 
 variable "encryption_key_arn" {
   type        = string
-  description = "ARN of the KMS key to use for S3 bucket encryption. If not provided, a new KMS key will be created."
+  description = <<-EOT
+    ARN of the KMS key to use for S3 bucket encryption. If not provided, a new
+    KMS key will be created.
+    EOT
   default     = null
 }
 
 variable "environment" {
   type        = string
-  description = "The environment for the deployment."
+  description = <<-EOT
+    The environment for the deployment. This is used in the prefix to all
+    resource names.
+    EOT
   default     = "development"
 }
 
 variable "force_delete" {
   type        = bool
-  description = "Whether to force delete the bucket and its contents."
+  description = <<-EOT
+    Whether to force delete the bucket and its contents. Must be set to `true`
+    _and_ applied before the bucket can be deleted.
+    EOT
   default     = false
 }
 
 variable "key_recovery_period" {
   type        = number
-  description = "Number of days to recover the created KMS key after deletion. Must be between 7 and 30."
+  description = <<-EOT
+    Number of days to recover the created KMS key after deletion. Must be
+    between `7` and `30`.
+    EOT
   default     = 30
 
   validation {
@@ -55,7 +67,10 @@ variable "logging_bucket" {
 
 variable "name" {
   type        = string
-  description = "Name of the bucket. The project and environment will be prepended to this automatically."
+  description = <<-EOT
+    Name of the bucket. The project and environment will be prepended to this
+    automatically.
+    EOT
 }
 
 variable "noncurrent_version_expiration_days" {
@@ -69,22 +84,28 @@ variable "noncurrent_version_expiration_days" {
   }
 }
 
+variable "project" {
+  type        = string
+  description = <<-EOT
+    Project that these resources are supporting. This is used in the prefix to
+    all resource names.
+    EOT
+}
+
 variable "storage_class_transitions" {
   type = list(object({
     days          = number
     storage_class = string
   }))
 
-  description = "List of storage class transitions to apply to the bucket."
+  description = <<-EOT
+    List of storage class transitions to apply to the buckets lifecycle
+    configuration.
+    EOT
   default = [{
     days          = 30
     storage_class = "STANDARD_IA"
   }]
-}
-
-variable "project" {
-  type        = string
-  description = "Project that these resources are supporting."
 }
 
 variable "tags" {

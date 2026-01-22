@@ -4,12 +4,15 @@ output "bucket_name" {
 }
 
 output "bucket_arn" {
-  description = "ARN of the created bucket."
+  description = "Full ARN of the created bucket."
   value       = module.this.arn
 }
 
 output "bucket_domain_name" {
-  description = "Domain name of the created bucket."
+  description = <<-EOT
+    Domain name of the created bucket, in the format
+    `bucketname.s3.amazonaws.com`.
+    EOT
   value       = module.this.bucket_domain_name
 }
 
