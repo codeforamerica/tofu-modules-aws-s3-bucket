@@ -13,6 +13,9 @@ permissions:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    env:
+      # Required to avoid rate limiting when downloading plugins.
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout source code
         uses: actions/checkout@v6
@@ -43,9 +46,8 @@ jobs:
         with:
           annotation-level: notice
           sarif-file: tflint-results.sarif
-      # When run on main, upload the SARIF file to GitHub.
       - name: Upload SARIF result
-        if: always() && github.ref == 'refs/heads/main'
+        if: always()
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: tflint-results.sarif
