@@ -1,5 +1,13 @@
 Version: "2012-10-17"
 Statement:
+- Sid: DefaultS3BucketPolicyStatement
+  Effect: Allow
+  Principal:
+    AWS: arn:${partition}:iam::${account}:root
+  Action:
+  - s3:GetBucketLocation
+  Resource:
+  - arn:${partition}:s3:::${bucket}
 - Sid: AllowSSLRequestsOnly
   Effect: Deny
   Principal: "*"

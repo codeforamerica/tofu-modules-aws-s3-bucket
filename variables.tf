@@ -9,25 +9,6 @@ variable "abort_incomplete_multipart_upload_days" {
   }
 }
 
-variable "allowed_principals" {
-  type        = list(string)
-  description = <<-EOT
-    List of AWS principal ARNs to allow to use the KMS key. This is used to
-    grant access to other resources that need to use the key, such as ECS task
-    roles.
-    EOT
-  default     = []
-}
-
-variable "encryption_key_arn" {
-  type        = string
-  description = <<-EOT
-    ARN of the KMS key to use for S3 bucket encryption. If not provided, a new
-    KMS key will be created.
-    EOT
-  default     = null
-}
-
 variable "environment" {
   type        = string
   description = <<-EOT
@@ -46,17 +27,42 @@ variable "force_delete" {
   default     = false
 }
 
-variable "key_recovery_period" {
-  type        = number
+variable "kms" {
+  type = object({
+    allowed_principals = optional(list(string), [])
+    arn                = optional(string, null)
+    create             = optional(bool, true)
+    recovery_period    = optional(number, 30)
+  })
   description = <<-EOT
-    Number of days to recover the created KMS key after deletion. Must be
-    between `7` and `30`.
+    KMS encryption settings for the bucket.
+
+    - `allowed_principals`: List of AWS principal ARNs to allow to use the KMS
+      key. This is used to grant access to other resources that need to use the
+      key, such as ECS task roles. Only applies when `create` is `true`.
+    - `arn`: ARN of an existing KMS key to use for bucket encryption. Required
+      when `create` is `false`.
+    - `create`: Whether to create a new KMS key for the bucket. When `false`,
+      `arn` must be provided.
+    - `recovery_period`: Number of days to recover the created KMS key after
+      deletion. Must be between `7` and `30`. Only applies when `create` is
+      `true`.
     EOT
-  default     = 30
+  default     = {}
 
   validation {
-    condition     = var.key_recovery_period > 6 && var.key_recovery_period < 31
-    error_message = "Key recovery period must be between 7 and 30."
+    condition     = var.kms.create || var.kms.arn != null
+    error_message = "When kms.create is false, kms.arn must be provided."
+  }
+
+  validation {
+    condition     = var.kms.arn == null || var.kms.create == false
+    error_message = "When kms.arn is provided, kms.create must be false."
+  }
+
+  validation {
+    condition     = var.kms.recovery_period > 6 && var.kms.recovery_period < 31
+    error_message = "Recovery period must be between 7 and 30."
   }
 }
 

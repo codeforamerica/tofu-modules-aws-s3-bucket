@@ -42,14 +42,25 @@ tofu init -upgrade
 | name                                   | Name of the bucket. The project and environment will be prepended to this automatically.                                                                  | `string`       | n/a                                             | yes      |
 | project                                | Project that these resources are supporting. This is used in the prefix to all resource names.                                                            | `string`       | n/a                                             | yes      |
 | abort_incomplete_multipart_upload_days | Number of days to abort incomplete multipart uploads.                                                                                                     | `number`       | `7`                                             | no       |
-| allowed_principals                     | List of AWS principal ARNs to allow to use the KMS key. This is used to grant access to other resources that need to use the key, such as ECS task roles. | `list(string)` | `[]`                                            | no       |
-| encryption_key_arn                     | ARN of the KMS key to use for S3 bucket encryption. If not provided, a new KMS key will be created.                                                       | `string`       | `null`                                          | no       |
 | environment                            | The environment for the deployment. This is used in the prefix to all resource names.                                                                     | `string`       | `"development"`                                 | no       |
 | force_delete                           | Whether to force delete the bucket and its contents. Must be set to `true` _and_ applied before the bucket can be deleted.                                | `bool`         | `false`                                         | no       |
-| key_recovery_period                    | Number of days to recover the created KMS key after deletion. Must be between `7` and `30`.                                                               | `number`       | `30`                                            | no       |
+| [kms]                                  | KMS encryption settings for the bucket.                                                                                                                    | `object`       | `{}`                                            | no       |
 | noncurrent_version_expiration_days     | Number of days to expire noncurrent versions of objects.                                                                                                  | `number`       | `30`                                            | no       |
 | [storage_class_transitions]            | List of storage class transitions to apply to the buckets lifecycle configuration.                                                                        | `list(object)` | `[{days  = 30, storage_class = "STANDARD_IA"}]` | no       |
 | tags                                   | Optional tags to be applied to all resources.                                                                                                             | `map(string)`  | `{}`                                            | no       |
+
+### kms
+
+Configure how the bucket is encrypted with KMS. By default, the module creates a
+new KMS key. To use an existing key instead, set `create` to `false` and provide
+`encryption_key_arn`.
+
+| Name               | Description                                                                                                                       | Type           | Default | Required |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------- | -------- |
+| allowed_principals | List of AWS principal ARNs to allow to use the KMS key, such as ECS task roles. Only applies when `create` is `true`.              | `list(string)` | `[]`    | no       |
+| arn                | ARN of an existing KMS key to use for bucket encryption. Required when `create` is `false`.                                       | `string`       | `null`  | no       |
+| create             | Whether to create a new KMS key for the bucket. When `false`, `arn` must be provided.                                             | `bool`         | `true`  | no       |
+| recovery_period    | Number of days to recover the created KMS key after deletion. Must be between `7` and `30`. Only applies when `create` is `true`. | `number`       | `30`    | no       |
 
 ### storage_class_transitions
 
@@ -89,6 +100,7 @@ repository.
 [badge-release]: https://img.shields.io/github/v/release/codeforamerica/tofu-modules-aws-s3-uploads-bucket?logo=github&label=Latest%20Release
 [code-checks]: https://github.com/codeforamerica/tofu-modules-aws-s3-uploads-bucket/actions/workflows/main.yaml
 [contributing]: CONTRIBUTING.md
+[kms]: #kms
 [latest-release]: https://github.com/codeforamerica/tofu-modules-aws-s3-uploads-bucket/releases/latest
 [storage-class]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html
 [storage_class_transitions]: #storage_class_transitions

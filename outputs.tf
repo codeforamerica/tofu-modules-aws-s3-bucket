@@ -1,11 +1,11 @@
 output "bucket_name" {
   description = "Name of the created bucket."
-  value       = module.this.bucket
+  value       = aws_s3_bucket.this.bucket
 }
 
 output "bucket_arn" {
   description = "Full ARN of the created bucket."
-  value       = module.this.arn
+  value       = aws_s3_bucket.this.arn
 }
 
 output "bucket_domain_name" {
@@ -13,7 +13,7 @@ output "bucket_domain_name" {
     Domain name of the created bucket, in the format
     `bucketname.s3.amazonaws.com`.
     EOT
-  value       = module.this.bucket_domain_name
+  value       = aws_s3_bucket.this.bucket_domain_name
 }
 
 output "kms_key_arn" {

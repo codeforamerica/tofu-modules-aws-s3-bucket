@@ -1,65 +1,97 @@
-resource "aws_kms_key" "bucket" {
-  for_each = var.encryption_key_arn != null ? toset([]) : toset(["this"])
-
-  description             = "Encryption key for bucket ${local.bucket_name}"
-  deletion_window_in_days = var.key_recovery_period
-  enable_key_rotation     = true
-  policy = jsonencode(yamldecode(templatefile("${path.module}/templates/key-policy.yaml.tftpl", {
-    account : data.aws_caller_identity.identity.account_id
-    bucket : local.bucket_name
-    partition : data.aws_partition.current.partition
-    principals : var.allowed_principals
-  })))
-
-  tags = local.tags
-}
-
-resource "aws_kms_alias" "bucket" {
-  for_each = var.encryption_key_arn != null ? toset([]) : toset(["this"])
-
-  name          = "alias/${local.bucket_name}"
-  target_key_id = aws_kms_key.bucket["this"].arn
-}
-
-module "this" {
-  source  = "boldlink/s3/aws"
-  version = "2.6.0"
-
+resource "aws_s3_bucket" "this" {
   bucket        = local.bucket_name
   force_destroy = var.force_delete
 
-  bucket_policy = jsonencode(yamldecode(templatefile("${path.module}/templates/bucket-policy.yaml.tftpl", {
-    partition : data.aws_partition.current.partition
-    bucket : local.bucket_name
-  })))
+  tags = local.tags
+}
 
-  lifecycle_configuration = [{
+resource "aws_s3_bucket_public_access_block" "this" {
+  bucket = aws_s3_bucket.this.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_ownership_controls" "this" {
+  bucket = aws_s3_bucket.this.id
+
+  rule {
+    object_ownership = "BucketOwnerEnforced"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "this" {
+  bucket = aws_s3_bucket.this.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
+  bucket = aws_s3_bucket.this.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      kms_master_key_id = local.kms_key_arn
+      sse_algorithm     = "aws:kms"
+    }
+
+    bucket_key_enabled = true
+  }
+}
+
+resource "aws_s3_bucket_logging" "this" {
+  bucket = aws_s3_bucket.this.id
+
+  target_bucket = var.logging_bucket
+  target_prefix = "${local.logs_path}/s3accesslogs/${local.bucket_name}"
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "this" {
+  # Referencing noncurrent-version behavior requires versioning to be enabled
+  # first.
+  depends_on = [aws_s3_bucket_versioning.this]
+
+  bucket = aws_s3_bucket.this.id
+
+  rule {
     id     = "state"
     status = "Enabled"
 
-    filter = {
+    filter {
       prefix = ""
     }
 
-    abort_incomplete_multipart_upload_days = var.abort_incomplete_multipart_upload_days
+    abort_incomplete_multipart_upload {
+      days_after_initiation = var.abort_incomplete_multipart_upload_days
+    }
 
-    noncurrent_version_expiration = [{
+    noncurrent_version_expiration {
       noncurrent_days = var.noncurrent_version_expiration_days
-    }]
+    }
 
-    transition = var.storage_class_transitions
-  }]
-
-  sse_bucket_key_enabled = true
-  sse_kms_master_key_arn = local.kms_key_arn
-  sse_sse_algorithm      = "aws:kms"
-
-  versioning_status = "Enabled"
-
-  s3_logging = {
-    target_bucket = var.logging_bucket
-    target_prefix = "${local.logs_path}/s3accesslogs/${local.bucket_name}"
+    dynamic "transition" {
+      for_each = var.storage_class_transitions
+      content {
+        days          = transition.value.days
+        storage_class = transition.value.storage_class
+      }
+    }
   }
+}
 
-  tags = local.tags
+resource "aws_s3_bucket_policy" "this" {
+  # The public access block must be in place before a bucket policy can be
+  # applied.
+  depends_on = [aws_s3_bucket_public_access_block.this]
+
+  bucket = aws_s3_bucket.this.id
+  policy = jsonencode(yamldecode(templatefile("${path.module}/templates/bucket-policy.yaml.tftpl", {
+    account : data.aws_caller_identity.identity.account_id
+    bucket : local.bucket_name
+    partition : data.aws_partition.current.partition
+  })))
 }
