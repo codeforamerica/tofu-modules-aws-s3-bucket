@@ -46,6 +46,7 @@ tofu init -upgrade
 | force_delete                           | Whether to force delete the bucket and its contents. Must be set to `true` _and_ applied before the bucket can be deleted.                                | `bool`         | `false`                                         | no       |
 | [kms]                                  | KMS encryption settings for the bucket.                                                                                                                    | `object`       | `{}`                                            | no       |
 | noncurrent_version_expiration_days     | Number of days to expire noncurrent versions of objects.                                                                                                  | `number`       | `30`                                            | no       |
+| [object_lock]                          | Object lock settings for the bucket.                                                                                                                       | `object`       | `{}`                                            | no       |
 | [storage_class_transitions]            | List of storage class transitions to apply to the buckets lifecycle configuration.                                                                        | `list(object)` | `[{days  = 30, storage_class = "STANDARD_IA"}]` | no       |
 | tags                                   | Optional tags to be applied to all resources.                                                                                                             | `map(string)`  | `{}`                                            | no       |
 
@@ -61,6 +62,24 @@ new KMS key. To use an existing key instead, set `create` to `false` and provide
 | arn                | ARN of an existing KMS key to use for bucket encryption. Required when `create` is `false`.                                       | `string`       | `null`  | no       |
 | create             | Whether to create a new KMS key for the bucket. When `false`, `arn` must be provided.                                             | `bool`         | `true`  | no       |
 | recovery_period    | Number of days to recover the created KMS key after deletion. Must be between `7` and `30`. Only applies when `create` is `true`. | `number`       | `30`    | no       |
+
+### object_lock
+
+Configure [object lock][object-lock] to protect objects from being deleted or
+overwritten. Object lock requires versioning, which this module always enables.
+By default, a `GOVERNANCE` mode retention rule of 30 days is applied.
+
+Object lock is enabled through the `aws_s3_bucket_object_lock_configuration`
+resource, so it can be turned on for both new and existing buckets without
+replacing them. To enable object lock without a default retention rule, set
+`days` to `null`. Note that once object lock is enabled on a bucket, it cannot
+be disabled.
+
+| Name    | Description                                                                                                          | Type     | Default        | Required |
+| ------- | ------------------------------------------------------------------------------------------------------------------ | -------- | -------------- | -------- |
+| days    | Number of days for the default retention period. Set to `null` to enable object lock without a default retention rule. | `number` | `30`           | no       |
+| enabled | Whether to enable object lock on the bucket. Can be enabled on an existing bucket, but cannot be disabled once enabled. | `bool`   | `true`         | no       |
+| mode    | Default retention mode. Must be `GOVERNANCE` or `COMPLIANCE`. Only applies when `days` is set.                      | `string` | `"GOVERNANCE"` | no       |
 
 ### storage_class_transitions
 
@@ -102,5 +121,7 @@ repository.
 [contributing]: CONTRIBUTING.md
 [kms]: #kms
 [latest-release]: https://github.com/codeforamerica/tofu-modules-aws-s3-uploads-bucket/releases/latest
+[object-lock]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html
+[object_lock]: #object_lock
 [storage-class]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html
 [storage_class_transitions]: #storage_class_transitions

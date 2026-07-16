@@ -90,6 +90,43 @@ variable "noncurrent_version_expiration_days" {
   }
 }
 
+variable "object_lock" {
+  type = object({
+    days    = optional(number, 30)
+    enabled = optional(bool, true)
+    mode    = optional(string, "GOVERNANCE")
+  })
+  description = <<-EOT
+    Object lock settings for the bucket.
+
+    - `days`: Number of days for the default retention period. Set to `null` to
+      enable object lock without a default retention rule. Only applies when
+      `enabled` is `true`.
+    - `enabled`: Whether to enable object lock on the bucket. Can be enabled on
+      an existing bucket, but cannot be disabled once enabled.
+    - `mode`: Default retention mode. Must be `GOVERNANCE` or `COMPLIANCE`. Only
+      applies when `days` is set.
+    EOT
+  default     = {}
+
+  validation {
+    condition     = var.object_lock.days == null || var.object_lock.days > 0
+    error_message = "Object lock retention days must be greater than 0."
+  }
+
+  validation {
+    condition     = var.object_lock.days == null || var.object_lock.enabled
+    error_message = <<-EOT
+      Object lock must be enabled to set a default retention period.
+      EOT
+  }
+
+  validation {
+    condition     = contains(["GOVERNANCE", "COMPLIANCE"], var.object_lock.mode)
+    error_message = "Object lock mode must be GOVERNANCE or COMPLIANCE."
+  }
+}
+
 variable "project" {
   type        = string
   description = <<-EOT

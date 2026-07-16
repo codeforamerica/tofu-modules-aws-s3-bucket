@@ -30,6 +30,26 @@ resource "aws_s3_bucket_versioning" "this" {
   }
 }
 
+resource "aws_s3_bucket_object_lock_configuration" "this" {
+  for_each = var.object_lock.enabled ? toset(["this"]) : toset([])
+
+  # Object lock requires versioning to be enabled on the bucket first.
+  depends_on = [aws_s3_bucket_versioning.this]
+
+  bucket = aws_s3_bucket.this.id
+
+  dynamic "rule" {
+    for_each = var.object_lock.days != null ? toset(["this"]) : toset([])
+
+    content {
+      default_retention {
+        mode = var.object_lock.mode
+        days = var.object_lock.days
+      }
+    }
+  }
+}
+
 resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
   bucket = aws_s3_bucket.this.id
 
