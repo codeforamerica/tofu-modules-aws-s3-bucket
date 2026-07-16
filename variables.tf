@@ -81,6 +81,45 @@ variable "logging_bucket" {
   description = "S3 bucket to send access logs to."
 }
 
+variable "malware_scanning" {
+  type = object({
+    enabled         = optional(bool, false)
+    object_prefixes = optional(list(string), [])
+    restrict_access = optional(bool, false)
+    tag_objects     = optional(bool, true)
+  })
+  description = <<-EOT
+    Malware scanning settings for the bucket, using GuardDuty Malware Protection
+    for S3.
+
+    - `enabled`: Whether to enable malware scanning on the bucket. Objects are
+      scanned as they are uploaded.
+    - `object_prefixes`: List of object key prefixes to scan. When empty, all
+      objects in the bucket are scanned.
+    - `restrict_access`: Whether to deny `s3:GetObject` for objects that are not
+      tagged `GuardDutyMalwareScanStatus = NO_THREATS_FOUND`. The scan role is
+      exempt so scanning can still read objects. Requires `enabled` and
+      `tag_objects` to be `true`.
+    - `tag_objects`: Whether GuardDuty should tag objects with the scan result
+      (`GuardDutyMalwareScanStatus`).
+    EOT
+  default     = {}
+
+  validation {
+    condition     = !var.malware_scanning.restrict_access || var.malware_scanning.enabled
+    error_message = <<-EOT
+      malware_scanning.enabled must be true when restrict_access is enabled.
+      EOT
+  }
+
+  validation {
+    condition     = !var.malware_scanning.restrict_access || var.malware_scanning.tag_objects
+    error_message = <<-EOT
+      malware_scanning.tag_objects must be true when restrict_access is enabled.
+      EOT
+  }
+}
+
 variable "name" {
   type        = string
   description = <<-EOT

@@ -1,9 +1,14 @@
-# AWS S3 Uploads Bucket Module
+# AWS S3 Bucket Module
 
 [![Main Checks][badge-checks]][code-checks] [![GitHub Release][badge-release]][latest-release]
 
-This module creates an S3 bucket for file uploads. The bucket is configured with
-logging, encryption, verisioning and a lifecycle configuration.
+This module creates an S3 bucket with secure defaults. The bucket is configured
+with logging, encryption, versioning, and a lifecycle configuration. Optional
+features include object lock and malware scanning.
+
+For file upload buckets, prefer the [`uploads` submodule](modules/uploads),
+which wraps this module with defaults suited to user-uploaded files (including
+malware scanning). See [Submodules](#submodules) below.
 
 ## Usage
 
@@ -12,11 +17,11 @@ to match your desired configuration. For example:
 
 ```hcl
 module "module_name" {
-  source = "github.com/codeforamerica/tofu-modules-aws-s3-uploads-bucket?ref=1.0.0"
+  source = "github.com/codeforamerica/tofu-modules-aws-s3-bucket?ref=1.0.0"
 
   project        = "my-project"
   environment    = "development"
-  logging-bucket = "my-logging-bucket"
+  logging_bucket = "my-logging-bucket"
   name           = "documents"
 }
 ```
@@ -46,6 +51,7 @@ tofu init -upgrade
 | environment                            | The environment for the deployment. This is used in the prefix to all resource names.                                                                 | `string`       | `"development"`                                 | no       |
 | force_delete                           | Whether to force delete the bucket and its contents. Must be set to `true` _and_ applied before the bucket can be deleted.                            | `bool`         | `false`                                         | no       |
 | [kms]                                  | KMS encryption settings for the bucket.                                                                                                               | `object`       | `{}`                                            | no       |
+| [malware_scanning]                     | Malware scanning settings for the bucket, using GuardDuty Malware Protection for S3.                                                                  | `object`       | `{}`                                            | no       |
 | noncurrent_version_expiration_days     | Number of days to expire noncurrent versions of objects.                                                                                              | `number`       | `30`                                            | no       |
 | [object_lock]                          | Object lock settings for the bucket.                                                                                                                  | `object`       | `{}`                                            | no       |
 | [storage_class_transitions]            | List of storage class transitions to apply to the buckets lifecycle configuration.                                                                    | `list(object)` | `[{days  = 30, storage_class = "STANDARD_IA"}]` | no       |
@@ -63,6 +69,42 @@ new KMS key. To use an existing key instead, set `create` to `false` and provide
 | arn                | ARN of an existing KMS key to use for bucket encryption. Required when `create` is `false`.                                       | `string`       | `null`  | no       |
 | create             | Whether to create a new KMS key for the bucket. When `false`, `arn` must be provided.                                             | `bool`         | `true`  | no       |
 | recovery_period    | Number of days to recover the created KMS key after deletion. Must be between `7` and `30`. Only applies when `create` is `true`. | `number`       | `30`    | no       |
+
+### malware_scanning
+
+Enable [GuardDuty Malware Protection for S3][malware-protection] to scan objects
+as they are uploaded. When enabled, the module creates an IAM role that
+GuardDuty assumes to read, scan, and tag objects, along with a malware
+protection plan for the bucket. Account-level GuardDuty does **not** need to be
+enabled to use this feature.
+
+Scan results are written to each object as a `GuardDutyMalwareScanStatus` tag
+(for example, `NO_THREATS_FOUND` or `THREATS_FOUND`) when `tag_objects` is
+`true`. Your application can read this tag to decide whether to serve an object.
+
+Set `restrict_access` to `true` to have the module add a bucket policy statement
+that denies `s3:GetObject` for any object not tagged
+`GuardDutyMalwareScanStatus = NO_THREATS_FOUND`. The scan role is exempt from
+this deny so scanning can still read objects. Note that this also blocks objects
+that could not be scanned (for example, tagged `UNSUPPORTED`), and applies to
+all principals, including account administrators.
+
+Because the bucket is KMS-encrypted, the scan role is granted `kms:Decrypt` and
+`kms:GenerateDataKey` on the key. When the module creates the key
+(`kms.create = true`), the key policy delegates to the account, so no additional
+configuration is needed. When using an existing key (`kms.create = false`), that
+key's policy must allow the scan role (or the account) to decrypt.
+
+GuardDuty Malware Protection for S3 is not available in every region. See the
+[AWS documentation][malware-protection] for supported regions and object size
+limits.
+
+| Name            | Description                                                                                                                                             | Type           | Default | Required |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------- | -------- |
+| enabled         | Whether to enable malware scanning on the bucket. Objects are scanned as they are uploaded.                                                             | `bool`         | `false` | no       |
+| object_prefixes | List of object key prefixes to scan. When empty, all objects in the bucket are scanned.                                                                 | `list(string)` | `[]`    | no       |
+| restrict_access | Whether to deny `s3:GetObject` for objects not tagged `GuardDutyMalwareScanStatus = NO_THREATS_FOUND`. Requires `enabled` and `tag_objects` to be true. | `bool`         | `false` | no       |
+| tag_objects     | Whether GuardDuty should tag objects with the scan result (`GuardDutyMalwareScanStatus`).                                                                | `bool`         | `true`  | no       |
 
 ### object_lock
 
@@ -110,18 +152,41 @@ different storage classes, see the [Amazon S3 documentation][storage-class].
 | bucket_arn         | Full ARN of the created bucket.                                                 | `string` |
 | bucket_domain_name | Domain name of the created bucket, in the format `bucketname.s3.amazonaws.com`. | `string` |
 | kms_key_arn        | ARN of the KMS key used for bucket encryption.                                  | `string` |
+| malware_scanning_role_arn | ARN of the IAM role GuardDuty assumes to scan objects. `null` when disabled. | `string` |
+
+## Submodules
+
+Submodules wrap this module with opinionated defaults for a specific purpose.
+
+| Name                            | Description                                                                                     |
+| ------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [uploads](modules/uploads)      | S3 bucket for file uploads, with malware scanning enforced and upload-appropriate defaults.     |
+
+Reference a submodule with the `//modules/<name>` subpath, for example:
+
+```hcl
+module "uploads" {
+  source = "github.com/codeforamerica/tofu-modules-aws-s3-bucket//modules/uploads?ref=1.0.0"
+
+  project        = "my-project"
+  environment    = "production"
+  logging_bucket = "my-logging-bucket"
+}
+```
 
 ## Contributing
 
 Follow the [contributing guidelines][contributing] to contribute to this
 repository.
 
-[badge-checks]: https://github.com/codeforamerica/tofu-modules-aws-s3-uploads-bucket/actions/workflows/main.yaml/badge.svg
-[badge-release]: https://img.shields.io/github/v/release/codeforamerica/tofu-modules-aws-s3-uploads-bucket?logo=github&label=Latest%20Release
-[code-checks]: https://github.com/codeforamerica/tofu-modules-aws-s3-uploads-bucket/actions/workflows/main.yaml
+[badge-checks]: https://github.com/codeforamerica/tofu-modules-aws-s3-bucket/actions/workflows/main.yaml/badge.svg
+[badge-release]: https://img.shields.io/github/v/release/codeforamerica/tofu-modules-aws-s3-bucket?logo=github&label=Latest%20Release
+[code-checks]: https://github.com/codeforamerica/tofu-modules-aws-s3-bucket/actions/workflows/main.yaml
 [contributing]: CONTRIBUTING.md
 [kms]: #kms
-[latest-release]: https://github.com/codeforamerica/tofu-modules-aws-s3-uploads-bucket/releases/latest
+[latest-release]: https://github.com/codeforamerica/tofu-modules-aws-s3-bucket/releases/latest
+[malware-protection]: https://docs.aws.amazon.com/guardduty/latest/ug/malware-protection-s3.html
+[malware_scanning]: #malware_scanning
 [object-lock]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html
 [object_lock]: #object_lock
 [storage-class]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html

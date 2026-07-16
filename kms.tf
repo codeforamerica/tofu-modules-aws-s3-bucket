@@ -11,7 +11,7 @@ resource "aws_kms_key" "bucket" {
     principals : var.kms.allowed_principals
   })))
 
-  tags = local.tags
+  tags = var.tags
 }
 
 resource "aws_kms_alias" "bucket" {
