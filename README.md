@@ -36,20 +36,20 @@ tofu init -upgrade
 
 ## Inputs
 
-| Name                                   | Description                                                                                                                                               | Type           | Default                                         | Required |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ----------------------------------------------- | -------- |
-| logging_bucket                         | S3 bucket to send access logs to.                                                                                                                         | `string`       | n/a                                             | yes      |
-| name                                   | Name of the bucket. The project and environment will be prepended to this automatically.                                                                  | `string`       | n/a                                             | yes      |
-| project                                | Project that these resources are supporting. This is used in the prefix to all resource names.                                                            | `string`       | n/a                                             | yes      |
-| abort_incomplete_multipart_upload_days | Number of days to abort incomplete multipart uploads.                                                                                                     | `number`       | `7`                                             | no       |
-| add_suffix                             | Whether to append a random suffix to the bucket name to help ensure it is globally unique.                                                                | `bool`         | `false`                                         | no       |
-| environment                            | The environment for the deployment. This is used in the prefix to all resource names.                                                                     | `string`       | `"development"`                                 | no       |
-| force_delete                           | Whether to force delete the bucket and its contents. Must be set to `true` _and_ applied before the bucket can be deleted.                                | `bool`         | `false`                                         | no       |
-| [kms]                                  | KMS encryption settings for the bucket.                                                                                                                    | `object`       | `{}`                                            | no       |
-| noncurrent_version_expiration_days     | Number of days to expire noncurrent versions of objects.                                                                                                  | `number`       | `30`                                            | no       |
-| [object_lock]                          | Object lock settings for the bucket.                                                                                                                       | `object`       | `{}`                                            | no       |
-| [storage_class_transitions]            | List of storage class transitions to apply to the buckets lifecycle configuration.                                                                        | `list(object)` | `[{days  = 30, storage_class = "STANDARD_IA"}]` | no       |
-| tags                                   | Optional tags to be applied to all resources.                                                                                                             | `map(string)`  | `{}`                                            | no       |
+| Name                                   | Description                                                                                                                                           | Type           | Default                                         | Required |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ----------------------------------------------- | -------- |
+| logging_bucket                         | S3 bucket to send access logs to.                                                                                                                     | `string`       | n/a                                             | yes      |
+| name                                   | Name of the bucket. The project and environment will be prepended to this automatically.                                                              | `string`       | n/a                                             | yes      |
+| project                                | Project that these resources are supporting. This is used in the prefix to all resource names.                                                        | `string`       | n/a                                             | yes      |
+| abort_incomplete_multipart_upload_days | Number of days to abort incomplete multipart uploads.                                                                                                 | `number`       | `7`                                             | no       |
+| add_suffix                             | Whether to append a random suffix to the bucket name to help ensure it is globally unique. The bucket name is truncated to keep within 63 characters. | `bool`         | `false`                                         | no       |
+| environment                            | The environment for the deployment. This is used in the prefix to all resource names.                                                                 | `string`       | `"development"`                                 | no       |
+| force_delete                           | Whether to force delete the bucket and its contents. Must be set to `true` _and_ applied before the bucket can be deleted.                            | `bool`         | `false`                                         | no       |
+| [kms]                                  | KMS encryption settings for the bucket.                                                                                                               | `object`       | `{}`                                            | no       |
+| noncurrent_version_expiration_days     | Number of days to expire noncurrent versions of objects.                                                                                              | `number`       | `30`                                            | no       |
+| [object_lock]                          | Object lock settings for the bucket.                                                                                                                  | `object`       | `{}`                                            | no       |
+| [storage_class_transitions]            | List of storage class transitions to apply to the buckets lifecycle configuration.                                                                    | `list(object)` | `[{days  = 30, storage_class = "STANDARD_IA"}]` | no       |
+| tags                                   | Optional tags to be applied to all resources.                                                                                                         | `map(string)`  | `{}`                                            | no       |
 
 ### kms
 
@@ -59,7 +59,7 @@ new KMS key. To use an existing key instead, set `create` to `false` and provide
 
 | Name               | Description                                                                                                                       | Type           | Default | Required |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------- | -------- |
-| allowed_principals | List of AWS principal ARNs to allow to use the KMS key, such as ECS task roles. Only applies when `create` is `true`.              | `list(string)` | `[]`    | no       |
+| allowed_principals | List of AWS principal ARNs to allow to use the KMS key, such as ECS task roles. Only applies when `create` is `true`.             | `list(string)` | `[]`    | no       |
 | arn                | ARN of an existing KMS key to use for bucket encryption. Required when `create` is `false`.                                       | `string`       | `null`  | no       |
 | create             | Whether to create a new KMS key for the bucket. When `false`, `arn` must be provided.                                             | `bool`         | `true`  | no       |
 | recovery_period    | Number of days to recover the created KMS key after deletion. Must be between `7` and `30`. Only applies when `create` is `true`. | `number`       | `30`    | no       |
@@ -76,11 +76,11 @@ replacing them. To enable object lock without a default retention rule, set
 `days` to `null`. Note that once object lock is enabled on a bucket, it cannot
 be disabled.
 
-| Name    | Description                                                                                                          | Type     | Default        | Required |
-| ------- | ------------------------------------------------------------------------------------------------------------------ | -------- | -------------- | -------- |
-| days    | Number of days for the default retention period. Set to `null` to enable object lock without a default retention rule. | `number` | `30`           | no       |
+| Name    | Description                                                                                                             | Type     | Default        | Required |
+| ------- | ----------------------------------------------------------------------------------------------------------------------- | -------- | -------------- | -------- |
+| days    | Number of days for the default retention period. Set to `null` to enable object lock without a default retention rule.  | `number` | `30`           | no       |
 | enabled | Whether to enable object lock on the bucket. Can be enabled on an existing bucket, but cannot be disabled once enabled. | `bool`   | `true`         | no       |
-| mode    | Default retention mode. Must be `GOVERNANCE` or `COMPLIANCE`. Only applies when `days` is set.                      | `string` | `"GOVERNANCE"` | no       |
+| mode    | Default retention mode. Must be `GOVERNANCE` or `COMPLIANCE`. Only applies when `days` is set.                          | `string` | `"GOVERNANCE"` | no       |
 
 ### storage_class_transitions
 

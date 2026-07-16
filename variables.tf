@@ -13,7 +13,8 @@ variable "add_suffix" {
   type        = bool
   description = <<-EOT
     Whether to append a random suffix to the bucket name. This helps ensure the
-    bucket name is globally unique.
+    bucket name is globally unique. When enabled, the bucket name is truncated
+    as needed so the full name stays within the 63-character limit.
     EOT
   default     = false
 }

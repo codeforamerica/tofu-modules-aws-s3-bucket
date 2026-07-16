@@ -1,7 +1,7 @@
 resource "random_string" "suffix" {
   count = var.add_suffix ? 1 : 0
 
-  length  = 8
+  length  = local.suffix_length
   lower   = true
   numeric = true
   special = false
@@ -13,6 +13,17 @@ resource "aws_s3_bucket" "this" {
   force_destroy = var.force_delete
 
   tags = local.tags
+
+  lifecycle {
+    precondition {
+      condition     = length(local.bucket_name) >= 3 && length(local.bucket_name) <= 63
+      error_message = <<-EOT
+        The bucket name must be between 3 and 63 characters. Shorten project,
+        environment, or name, or set add_suffix to true to truncate the name
+        automatically.
+        EOT
+    }
+  }
 }
 
 resource "aws_s3_bucket_public_access_block" "this" {
