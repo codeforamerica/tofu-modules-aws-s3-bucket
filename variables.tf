@@ -9,6 +9,15 @@ variable "abort_incomplete_multipart_upload_days" {
   }
 }
 
+variable "add_suffix" {
+  type        = bool
+  description = <<-EOT
+    Whether to append a random suffix to the bucket name. This helps ensure the
+    bucket name is globally unique.
+    EOT
+  default     = false
+}
+
 variable "environment" {
   type        = string
   description = <<-EOT

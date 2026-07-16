@@ -1,3 +1,13 @@
+resource "random_string" "suffix" {
+  count = var.add_suffix ? 1 : 0
+
+  length  = 8
+  lower   = true
+  numeric = true
+  special = false
+  upper   = false
+}
+
 resource "aws_s3_bucket" "this" {
   bucket        = local.bucket_name
   force_destroy = var.force_delete
