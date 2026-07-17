@@ -171,8 +171,10 @@ variable "object_lock" {
   }
 
   validation {
-    condition     = contains(["GOVERNANCE", "COMPLIANCE"], var.object_lock.mode)
-    error_message = "Object lock mode must be GOVERNANCE or COMPLIANCE."
+    condition     = var.object_lock.days == null || contains(["GOVERNANCE", "COMPLIANCE"], var.object_lock.mode)
+    error_message = <<-EOT
+      Object lock mode must be GOVERNANCE or COMPLIANCE when days is set.
+      EOT
   }
 }
 
