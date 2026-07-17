@@ -13,6 +13,16 @@ locals {
 
   bucket_name = var.add_suffix ? "${local.truncated_base}-${one(random_string.suffix[*].result)}" : local.base_name
 
+  # Base bucket policy rendered from the template, before merging in any
+  # additional statements provided by the caller.
+  base_bucket_policy = yamldecode(templatefile("${path.module}/templates/bucket-policy.yaml.tftpl", {
+    account          = data.aws_caller_identity.identity.account_id
+    bucket           = local.bucket_name
+    partition        = data.aws_partition.current.partition
+    restrict_malware = var.malware_scanning.restrict_access
+    scan_role_arn    = var.malware_scanning.restrict_access ? aws_iam_role.malware_scanning["this"].arn : ""
+  }))
+
   kms_key_arn = var.kms.create ? aws_kms_key.bucket["this"].arn : var.kms.arn
   logs_path   = "/AWSLogs/${data.aws_caller_identity.identity.account_id}"
   tags        = merge({ sensitivity = var.sensitivity }, var.tags)

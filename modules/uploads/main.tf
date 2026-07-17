@@ -3,6 +3,7 @@ module "bucket" {
 
   abort_incomplete_multipart_upload_days = var.abort_incomplete_multipart_upload_days
   add_suffix                             = var.add_suffix
+  additional_policy_statements           = var.additional_policy_statements
   environment                            = var.environment
   force_delete                           = var.force_delete
   kms                                    = var.kms

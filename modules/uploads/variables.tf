@@ -14,6 +14,16 @@ variable "add_suffix" {
   default     = false
 }
 
+variable "additional_policy_statements" {
+  type        = any
+  description = <<-EOT
+    Additional IAM policy statements to include in the bucket policy, merged
+    with the statements the module always applies (default access, SSL-only,
+    and malware scanning).
+    EOT
+  default     = []
+}
+
 variable "environment" {
   type        = string
   description = <<-EOT

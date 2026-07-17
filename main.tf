@@ -130,11 +130,7 @@ resource "aws_s3_bucket_policy" "this" {
   depends_on = [aws_s3_bucket_public_access_block.this]
 
   bucket = aws_s3_bucket.this.id
-  policy = jsonencode(yamldecode(templatefile("${path.module}/templates/bucket-policy.yaml.tftpl", {
-    account          = data.aws_caller_identity.identity.account_id
-    bucket           = local.bucket_name
-    partition        = data.aws_partition.current.partition
-    restrict_malware = var.malware_scanning.restrict_access
-    scan_role_arn    = var.malware_scanning.restrict_access ? aws_iam_role.malware_scanning["this"].arn : ""
-  })))
+  policy = jsonencode(merge(local.base_bucket_policy, {
+    Statement = concat(local.base_bucket_policy.Statement, var.additional_policy_statements)
+  }))
 }
