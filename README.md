@@ -1,14 +1,15 @@
 # AWS S3 Bucket Module
 
-[![Main Checks][badge-checks]][code-checks] [![GitHub Release][badge-release]][latest-release]
+[![GitHub Release][badge-release]][latest-release]
 
-This module creates an S3 bucket with secure defaults. The bucket is configured
-with logging, encryption, versioning, and a lifecycle configuration. Optional
-features include object lock and malware scanning.
+This modules creates an S3 bucket and associated resources like the bucket
+policy, encryption, lifecycle configuration, etc. It uses sane defaults to
+configure buckets as secure and compliant by default.
 
-For file upload buckets, prefer the [`uploads` submodule](modules/uploads),
-which wraps this module with defaults suited to user-uploaded files (including
-malware scanning). See [Submodules](#submodules) below.
+In addition to the root module, the [`uploads` submodule][uploads] submodule is
+provided as a wrapper for file upload buckets. This submodule uses different
+defaults, such as malware scanning enabled, that are appropriate for file
+uploads. See [Submodules] below.
 
 ## Usage
 
@@ -33,22 +34,16 @@ tofu init
 tofu plan
 ```
 
-To update the source for this module, pass `-upgrade` to `tofu init`:
-
-```bash
-tofu init -upgrade
-```
-
 ## Inputs
 
 | Name                                   | Description                                                                                                                                           | Type           | Default                                         | Required |
 | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ----------------------------------------------- | -------- |
 | logging_bucket                         | S3 bucket to send access logs to.                                                                                                                     | `string`       | n/a                                             | yes      |
 | name                                   | Name of the bucket. The project and environment will be prepended to this automatically.                                                              | `string`       | n/a                                             | yes      |
-| project                                | Project that these resources are supporting. This is used in the prefix to all resource names.                                                        | `string`       | n/a                                             | yes      |
+| project                                | Project that these resources are supporting.                                                                                                          | `string`       | n/a                                             | yes      |
 | abort_incomplete_multipart_upload_days | Number of days to abort incomplete multipart uploads.                                                                                                 | `number`       | `7`                                             | no       |
 | add_suffix                             | Whether to append a random suffix to the bucket name to help ensure it is globally unique. The bucket name is truncated to keep within 63 characters. | `bool`         | `false`                                         | no       |
-| environment                            | The environment for the deployment. This is used in the prefix to all resource names.                                                                 | `string`       | `"development"`                                 | no       |
+| environment                            | The environment for the deployment.                                                                                                                   | `string`       | `"development"`                                 | no       |
 | force_delete                           | Whether to force delete the bucket and its contents. Must be set to `true` _and_ applied before the bucket can be deleted.                            | `bool`         | `false`                                         | no       |
 | [kms]                                  | KMS encryption settings for the bucket.                                                                                                               | `object`       | `{}`                                            | no       |
 | [malware_scanning]                     | Malware scanning settings for the bucket, using GuardDuty Malware Protection for S3.                                                                  | `object`       | `{}`                                            | no       |
@@ -75,8 +70,7 @@ new KMS key. To use an existing key instead, set `create` to `false` and provide
 Enable [GuardDuty Malware Protection for S3][malware-protection] to scan objects
 as they are uploaded. When enabled, the module creates an IAM role that
 GuardDuty assumes to read, scan, and tag objects, along with a malware
-protection plan for the bucket. Account-level GuardDuty does **not** need to be
-enabled to use this feature.
+protection plan for the bucket.
 
 Scan results are written to each object as a `GuardDutyMalwareScanStatus` tag
 (for example, `NO_THREATS_FOUND` or `THREATS_FOUND`) when `tag_objects` is
@@ -104,13 +98,18 @@ limits.
 | enabled         | Whether to enable malware scanning on the bucket. Objects are scanned as they are uploaded.                                                             | `bool`         | `false` | no       |
 | object_prefixes | List of object key prefixes to scan. When empty, all objects in the bucket are scanned.                                                                 | `list(string)` | `[]`    | no       |
 | restrict_access | Whether to deny `s3:GetObject` for objects not tagged `GuardDutyMalwareScanStatus = NO_THREATS_FOUND`. Requires `enabled` and `tag_objects` to be true. | `bool`         | `false` | no       |
-| tag_objects     | Whether GuardDuty should tag objects with the scan result (`GuardDutyMalwareScanStatus`).                                                                | `bool`         | `true`  | no       |
+| tag_objects     | Whether GuardDuty should tag objects with the scan result (`GuardDutyMalwareScanStatus`).                                                               | `bool`         | `true`  | no       |
 
 ### object_lock
 
 Configure [object lock][object-lock] to protect objects from being deleted or
 overwritten. Object lock requires versioning, which this module always enables.
 By default, a `GOVERNANCE` mode retention rule of 30 days is applied.
+
+> [!NOTE]
+> Object lock works by locking the underlying _version_. Files can still be
+> overwritten and marked as deleted with object lock enabled, but the version
+> marked cannot be.
 
 Object lock is enabled through the `aws_s3_bucket_object_lock_configuration`
 resource, so it can be turned on for both new and existing buckets without
@@ -146,21 +145,21 @@ different storage classes, see the [Amazon S3 documentation][storage-class].
 
 ## Outputs
 
-| Name               | Description                                                                     | Type     |
-| ------------------ | ------------------------------------------------------------------------------- | -------- |
-| bucket_name        | Name of the created bucket.                                                     | `string` |
-| bucket_arn         | Full ARN of the created bucket.                                                 | `string` |
-| bucket_domain_name | Domain name of the created bucket, in the format `bucketname.s3.amazonaws.com`. | `string` |
-| kms_key_arn        | ARN of the KMS key used for bucket encryption.                                  | `string` |
-| malware_scanning_role_arn | ARN of the IAM role GuardDuty assumes to scan objects. `null` when disabled. | `string` |
+| Name                      | Description                                                                     | Type     |
+| ------------------------- | ------------------------------------------------------------------------------- | -------- |
+| arn                       | Full ARN of the created bucket.                                                 | `string` |
+| domain_name               | Domain name of the created bucket, in the format `bucketname.s3.amazonaws.com`. | `string` |
+| kms_key_arn               | ARN of the KMS key used for bucket encryption.                                  | `string` |
+| malware_scanning_role_arn | ARN of the IAM role GuardDuty assumes to scan objects. `null` when disabled.    | `string` |
+| name                      | Name of the created bucket.                                                     | `string` |
 
 ## Submodules
 
 Submodules wrap this module with opinionated defaults for a specific purpose.
 
-| Name                            | Description                                                                                     |
-| ------------------------------- | ----------------------------------------------------------------------------------------------- |
-| [uploads](modules/uploads)      | S3 bucket for file uploads, with malware scanning enforced and upload-appropriate defaults.     |
+| Name      | Description                                                                                 |
+| --------- | ------------------------------------------------------------------------------------------- |
+| [uploads] | S3 bucket for file uploads, with malware scanning enforced and upload-appropriate defaults. |
 
 Reference a submodule with the `//modules/<name>` subpath, for example:
 
@@ -179,9 +178,7 @@ module "uploads" {
 Follow the [contributing guidelines][contributing] to contribute to this
 repository.
 
-[badge-checks]: https://github.com/codeforamerica/tofu-modules-aws-s3-bucket/actions/workflows/main.yaml/badge.svg
 [badge-release]: https://img.shields.io/github/v/release/codeforamerica/tofu-modules-aws-s3-bucket?logo=github&label=Latest%20Release
-[code-checks]: https://github.com/codeforamerica/tofu-modules-aws-s3-bucket/actions/workflows/main.yaml
 [contributing]: CONTRIBUTING.md
 [kms]: #kms
 [latest-release]: https://github.com/codeforamerica/tofu-modules-aws-s3-bucket/releases/latest
@@ -191,3 +188,5 @@ repository.
 [object_lock]: #object_lock
 [storage-class]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html
 [storage_class_transitions]: #storage_class_transitions
+[submodules]: #submodules
+[uploads]: modules/uploads

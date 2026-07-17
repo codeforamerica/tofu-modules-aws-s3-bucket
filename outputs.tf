@@ -1,14 +1,9 @@
-output "bucket_name" {
-  description = "Name of the created bucket."
-  value       = aws_s3_bucket.this.bucket
-}
-
-output "bucket_arn" {
+output "arn" {
   description = "Full ARN of the created bucket."
   value       = aws_s3_bucket.this.arn
 }
 
-output "bucket_domain_name" {
+output "domain_name" {
   description = <<-EOT
     Domain name of the created bucket, in the format
     `bucketname.s3.amazonaws.com`.
@@ -27,4 +22,9 @@ output "malware_scanning_role_arn" {
     scanning is disabled.
     EOT
   value       = var.malware_scanning.enabled ? aws_iam_role.malware_scanning["this"].arn : null
+}
+
+output "name" {
+  description = "Name of the created bucket."
+  value       = aws_s3_bucket.this.bucket
 }

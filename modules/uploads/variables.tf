@@ -54,11 +54,11 @@ variable "malware_scanning" {
   type = object({
     object_prefixes = optional(list(string), [])
     restrict_access = optional(bool, true)
-    tag_objects     = optional(bool, true)
   })
   description = <<-EOT
     Malware scanning settings for the bucket. Scanning is always enabled for
-    upload buckets and cannot be disabled here.
+    upload buckets, and objects are always tagged with the scan result; neither
+    can be disabled here.
 
     - `object_prefixes`: List of object key prefixes to scan. When empty, all
       objects in the bucket are scanned.
@@ -67,7 +67,6 @@ variable "malware_scanning" {
       so unscanned or infected uploads are not served. Note that this also
       blocks objects GuardDuty could not scan (for example, files that are too
       large, tagged `UNSUPPORTED`).
-    - `tag_objects`: Whether GuardDuty should tag objects with the scan result.
     EOT
   default     = {}
 }

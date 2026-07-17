@@ -16,12 +16,13 @@ module "bucket" {
   # Identify these buckets by their purpose.
   tags = merge({ use = "file-uploads" }, var.tags)
 
-  # Malware scanning is always enabled for upload buckets, but the remaining
-  # scan options are overridable.
+  # Malware scanning is always enabled for upload buckets, and objects are
+  # always tagged with the scan result so it can be acted on per object. The
+  # remaining scan options are overridable.
   malware_scanning = {
     enabled         = true
     object_prefixes = var.malware_scanning.object_prefixes
     restrict_access = var.malware_scanning.restrict_access
-    tag_objects     = var.malware_scanning.tag_objects
+    tag_objects     = true
   }
 }
