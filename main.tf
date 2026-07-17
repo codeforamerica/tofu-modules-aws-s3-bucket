@@ -12,7 +12,7 @@ resource "aws_s3_bucket" "this" {
   bucket        = local.bucket_name
   force_destroy = var.force_delete
 
-  tags = var.tags
+  tags = local.tags
 
   lifecycle {
     precondition {

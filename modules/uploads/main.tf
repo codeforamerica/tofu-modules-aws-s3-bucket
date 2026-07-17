@@ -11,6 +11,7 @@ module "bucket" {
   noncurrent_version_expiration_days     = var.noncurrent_version_expiration_days
   object_lock                            = var.object_lock
   project                                = var.project
+  sensitivity                            = var.sensitivity
   storage_class_transitions              = var.storage_class_transitions
 
   # Identify these buckets by their purpose.

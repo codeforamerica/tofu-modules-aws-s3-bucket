@@ -40,10 +40,11 @@ module "uploads" {
 This submodule accepts the same inputs as the [root module][root-module], with
 these differences:
 
-| Name             | Description                                                                                                                        | Type     | Default     | Required |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- | -------- |
-| name             | Name of the bucket. The project and environment will be prepended to this automatically.                                           | `string` | `"uploads"` | no       |
-| malware_scanning | Malware scanning settings. Scanning and result tagging are always enabled; `enabled` and `tag_objects` are not exposed. See below. | `object` | `{}`        | no       |
+| Name             | Description                                                                                                                        | Type     | Default        | Required |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------- | -------------- | -------- |
+| name             | Name of the bucket. The project and environment will be prepended to this automatically.                                           | `string` | `"uploads"`    | no       |
+| malware_scanning | Malware scanning settings. Scanning and result tagging are always enabled; `enabled` and `tag_objects` are not exposed. See below. | `object` | `{}`           | no       |
+| sensitivity      | Data sensitivity level for the bucket. Valid values are `public`, `internal`, `confidential`, and `restricted`.                    | `string` | `confidential` | no       |
 
 ### malware_scanning
 

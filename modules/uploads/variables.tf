@@ -106,6 +106,22 @@ variable "project" {
     EOT
 }
 
+variable "sensitivity" {
+  type        = string
+  description = <<-EOT
+    Data sensitivity level for the bucket. Valid values are `public`,
+    `internal`, `confidential`, and `restricted`.
+    EOT
+  default     = "confidential"
+
+  validation {
+    condition     = contains(["public", "internal", "confidential", "restricted"], var.sensitivity)
+    error_message = <<-EOT
+      Sensitivity must be one of: public, internal, confidential, restricted.
+      EOT
+  }
+}
+
 variable "storage_class_transitions" {
   type = list(object({
     days          = number
