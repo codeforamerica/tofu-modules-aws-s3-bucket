@@ -38,6 +38,22 @@ variable "environment" {
   default     = "development"
 }
 
+variable "expiration" {
+  type        = number
+  description = <<-EOT
+    Number of days before current object versions expire. Set to `null` to
+    disable expiration of current object versions.
+    EOT
+  default     = null
+
+  validation {
+    condition     = var.expiration == null || var.expiration > 0
+    error_message = <<-EOT
+      Expiration days must be greater than 0, or null to disable.
+      EOT
+  }
+}
+
 variable "force_delete" {
   type        = bool
   description = <<-EOT

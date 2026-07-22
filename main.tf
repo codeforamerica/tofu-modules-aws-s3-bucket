@@ -114,6 +114,13 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
       noncurrent_days = var.noncurrent_version_expiration_days
     }
 
+    dynamic "expiration" {
+      for_each = var.expiration != null ? toset(["this"]) : toset([])
+      content {
+        days = var.expiration
+      }
+    }
+
     dynamic "transition" {
       for_each = var.storage_class_transitions
       content {
