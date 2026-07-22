@@ -185,19 +185,20 @@ variable "object_lock" {
   default     = {}
 
   validation {
-    condition     = var.object_lock.days == null || var.object_lock.days > 0
+    condition = (
+      !var.object_lock.enabled
+      || var.object_lock.days == null
+      || var.object_lock.days > 0
+    )
     error_message = "Object lock retention days must be greater than 0."
   }
 
   validation {
-    condition     = var.object_lock.days == null || var.object_lock.enabled
-    error_message = <<-EOT
-      Object lock must be enabled to set a default retention period.
-      EOT
-  }
-
-  validation {
-    condition     = var.object_lock.days == null || contains(["GOVERNANCE", "COMPLIANCE"], var.object_lock.mode)
+    condition = (
+      !var.object_lock.enabled
+      || var.object_lock.days == null
+      || contains(["GOVERNANCE", "COMPLIANCE"], var.object_lock.mode)
+    )
     error_message = <<-EOT
       Object lock mode must be GOVERNANCE or COMPLIANCE when days is set.
       EOT
