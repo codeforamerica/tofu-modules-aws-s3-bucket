@@ -12,5 +12,3 @@ permissions:
 jobs:
   tflint:
     uses: codeforamerica/github-actions/.github/workflows/tflint.yaml@main
-    with:
-      path: ./tofu
