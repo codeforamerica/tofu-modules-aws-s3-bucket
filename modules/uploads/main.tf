@@ -5,6 +5,7 @@ module "bucket" {
   add_suffix                             = var.add_suffix
   additional_policy_statements           = var.additional_policy_statements
   environment                            = var.environment
+  expiration                             = var.expiration
   force_delete                           = var.force_delete
   kms                                    = var.kms
   logging_bucket                         = var.logging_bucket
