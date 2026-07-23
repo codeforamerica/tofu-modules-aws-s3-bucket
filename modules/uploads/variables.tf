@@ -2,11 +2,6 @@ variable "abort_incomplete_multipart_upload_days" {
   type        = number
   description = "Number of days to abort incomplete multipart uploads."
   default     = 7
-
-  validation {
-    condition     = var.abort_incomplete_multipart_upload_days > 0
-    error_message = "Abort incomplete multipart upload days must be greater than 0."
-  }
 }
 
 variable "add_suffix" {
@@ -71,35 +66,9 @@ variable "kms" {
     recovery_period    = optional(number, 30)
   })
   description = <<-EOT
-    KMS encryption settings for the bucket.
-
-    - `allowed_principals`: List of AWS principal ARNs to allow to use the KMS
-      key. This is used to grant access to other resources that need to use the
-      key, such as ECS task roles. Only applies when `create` is `true`.
-    - `arn`: ARN of an existing KMS key to use for bucket encryption. Required
-      when `create` is `false`.
-    - `create`: Whether to create a new KMS key for the bucket. When `false`,
-      `arn` must be provided.
-    - `recovery_period`: Number of days to recover the created KMS key after
-      deletion. Must be between `7` and `30`. Only applies when `create` is
-      `true`.
+    KMS encryption settings for the bucket. See the root module for details.
     EOT
   default     = {}
-
-  validation {
-    condition     = var.kms.create || var.kms.arn != null
-    error_message = "When kms.create is false, kms.arn must be provided."
-  }
-
-  validation {
-    condition     = var.kms.arn == null || var.kms.create == false
-    error_message = "When kms.arn is provided, kms.create must be false."
-  }
-
-  validation {
-    condition     = var.kms.recovery_period > 6 && var.kms.recovery_period < 31
-    error_message = "Recovery period must be between 7 and 30."
-  }
 }
 
 variable "logging_bucket" {
@@ -109,41 +78,23 @@ variable "logging_bucket" {
 
 variable "malware_scanning" {
   type = object({
-    enabled         = optional(bool, false)
     object_prefixes = optional(list(string), [])
-    restrict_access = optional(bool, false)
-    tag_objects     = optional(bool, true)
+    restrict_access = optional(bool, true)
   })
   description = <<-EOT
-    Malware scanning settings for the bucket, using GuardDuty Malware Protection
-    for S3.
+    Malware scanning settings for the bucket. Scanning is always enabled for
+    upload buckets, and objects are always tagged with the scan result; neither
+    can be disabled here.
 
-    - `enabled`: Whether to enable malware scanning on the bucket. Objects are
-      scanned as they are uploaded.
     - `object_prefixes`: List of object key prefixes to scan. When empty, all
       objects in the bucket are scanned.
     - `restrict_access`: Whether to deny `s3:GetObject` for objects that are not
-      tagged `GuardDutyMalwareScanStatus = NO_THREATS_FOUND`. The scan role is
-      exempt so scanning can still read objects. Requires `enabled` and
-      `tag_objects` to be `true`.
-    - `tag_objects`: Whether GuardDuty should tag objects with the scan result
-      (`GuardDutyMalwareScanStatus`).
+      tagged `GuardDutyMalwareScanStatus = NO_THREATS_FOUND`. Defaults to `true`
+      so unscanned or infected uploads are not served. Note that this also
+      blocks objects GuardDuty could not scan (for example, files that are too
+      large, tagged `UNSUPPORTED`).
     EOT
   default     = {}
-
-  validation {
-    condition     = !var.malware_scanning.restrict_access || var.malware_scanning.enabled
-    error_message = <<-EOT
-      malware_scanning.enabled must be true when restrict_access is enabled.
-      EOT
-  }
-
-  validation {
-    condition     = !var.malware_scanning.restrict_access || var.malware_scanning.tag_objects
-    error_message = <<-EOT
-      malware_scanning.tag_objects must be true when restrict_access is enabled.
-      EOT
-  }
 }
 
 variable "name" {
@@ -152,17 +103,13 @@ variable "name" {
     Name of the bucket. The project and environment will be prepended to this
     automatically.
     EOT
+  default     = "uploads"
 }
 
 variable "noncurrent_version_expiration_days" {
   type        = number
   description = "Number of days to expire noncurrent versions of objects."
   default     = 30
-
-  validation {
-    condition     = var.noncurrent_version_expiration_days > 0
-    error_message = "Noncurrent version expiration days must be greater than 0."
-  }
 }
 
 variable "object_lock" {
@@ -172,37 +119,9 @@ variable "object_lock" {
     mode    = optional(string, "GOVERNANCE")
   })
   description = <<-EOT
-    Object lock settings for the bucket.
-
-    - `days`: Number of days for the default retention period. Set to `null` to
-      enable object lock without a default retention rule. Only applies when
-      `enabled` is `true`.
-    - `enabled`: Whether to enable object lock on the bucket. Can be enabled on
-      an existing bucket, but cannot be disabled once enabled.
-    - `mode`: Default retention mode. Must be `GOVERNANCE` or `COMPLIANCE`. Only
-      applies when `days` is set.
+    Object lock settings for the bucket. See the root module for details.
     EOT
   default     = {}
-
-  validation {
-    condition = (
-      !var.object_lock.enabled
-      || var.object_lock.days == null
-      || var.object_lock.days > 0
-    )
-    error_message = "Object lock retention days must be greater than 0."
-  }
-
-  validation {
-    condition = (
-      !var.object_lock.enabled
-      || var.object_lock.days == null
-      || contains(["GOVERNANCE", "COMPLIANCE"], var.object_lock.mode)
-    )
-    error_message = <<-EOT
-      Object lock mode must be GOVERNANCE or COMPLIANCE when days is set.
-      EOT
-  }
 }
 
 variable "project" {
@@ -219,7 +138,7 @@ variable "sensitivity" {
     Data sensitivity level for the bucket. Valid values are `public`,
     `internal`, `confidential`, and `restricted`.
     EOT
-  default     = "internal"
+  default     = "confidential"
 
   validation {
     condition     = contains(["public", "internal", "confidential", "restricted"], var.sensitivity)
@@ -234,9 +153,8 @@ variable "storage_class_transitions" {
     days          = number
     storage_class = string
   }))
-
   description = <<-EOT
-    List of storage class transitions to apply to the buckets lifecycle
+    List of storage class transitions to apply to the bucket's lifecycle
     configuration.
     EOT
   default = [{

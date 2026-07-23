@@ -2,6 +2,8 @@ name: Trivy Analysis
 
 on:
   push:
+    branches: [main]
+  pull_request:
 
 permissions:
   contents: read
@@ -9,29 +11,4 @@ permissions:
 
 jobs:
   trivy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v6
-      - name: Run Trivy vulnerability scanner
-        # v0.35.0
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
-        with:
-          scan-type: config
-          ignore-unfixed: true
-          skip-dirs: "**/*/.terraform"
-          exit-code: 1
-          format: sarif
-          output: trivy-results.sarif
-      - name: Parse SARIF file for annotations
-        if: always()
-        uses: jontyms/sarif-annotations@v0.0.3
-        with:
-          annotation-level: notice
-          sarif-file: trivy-results.sarif
-      # When run on main, upload the SARIF file to GitHub.
-      - name: Upload SARIF result
-        if: always() && github.ref == 'refs/heads/main'
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: trivy-results.sarif
+    uses: codeforamerica/github-actions/.github/workflows/trivy.yaml@main
