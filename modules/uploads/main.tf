@@ -14,6 +14,7 @@ module "bucket" {
   object_lock                            = var.object_lock
   project                                = var.project
   sensitivity                            = var.sensitivity
+  state                                  = var.state
   storage_class_transitions              = var.storage_class_transitions
 
   # Identify these buckets by their purpose.
