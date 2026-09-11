@@ -14,13 +14,27 @@ uploads. See [Submodules] below.
 ## Usage
 
 Add this module to your `main.tf` (or appropriate) file and configure the inputs
-to match your desired configuration. For example:
+to match your desired configuration. For example, to create a bucket called `my-project-development-documents`:
 
 ```hcl
 module "module_name" {
-  source = "github.com/codeforamerica/tofu-modules-aws-s3-bucket?ref=1.0.0"
+  source = "github.com/codeforamerica/tofu-modules-aws-s3-bucket?ref=1.1.0"
 
   project        = "my-project"
+  environment    = "development"
+  logging_bucket = "my-logging-bucket"
+  name           = "documents"
+}
+```
+
+Alternative example, to create a bucket called `my-project-wa-development-documents` (including the state):
+
+```hcl
+module "module_name" {
+  source = "github.com/codeforamerica/tofu-modules-aws-s3-bucket?ref=1.1.0"
+
+  project        = "my-project"
+  state          = "wa"
   environment    = "development"
   logging_bucket = "my-logging-bucket"
   name           = "documents"
@@ -39,7 +53,7 @@ tofu plan
 | Name                                   | Description                                                                                                                                           | Type           | Default                                         | Required |
 | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ----------------------------------------------- | -------- |
 | logging_bucket                         | S3 bucket to send access logs to.                                                                                                                     | `string`       | n/a                                             | yes      |
-| name                                   | Name of the bucket. The project and environment will be prepended to this automatically.                                                              | `string`       | n/a                                             | yes      |
+| name                                   | Name of the bucket. The project and environment will be prepended to this automatically, and the state prepended between project and environment if included (`<project>[-<state>]-<environment>-<name>`).                                                              | `string`       | n/a                                             | yes      |
 | project                                | Project that these resources are supporting.                                                                                                          | `string`       | n/a                                             | yes      |
 | abort_incomplete_multipart_upload_days | Number of days to abort incomplete multipart uploads.                                                                                                 | `number`       | `7`                                             | no       |
 | add_suffix                             | Whether to append a random suffix to the bucket name to help ensure it is globally unique. The bucket name is truncated to keep within 63 characters. | `bool`         | `false`                                         | no       |
@@ -52,6 +66,7 @@ tofu plan
 | noncurrent_version_expiration_days     | Number of days to expire noncurrent versions of objects.                                                                                              | `number`       | `30`                                            | no       |
 | [object_lock]                          | Object lock settings for the bucket.                                                                                                                  | `object`       | `{}`                                            | no       |
 | sensitivity                            | Data sensitivity level for the bucket. Valid values are `public`, `internal`, `confidential`, and `restricted`.                                       | `string`       | `internal`                                      | no       |
+| state                                  | Optional two-character state code (e.g., `WA` or `MO`) included in the bucket name between the project and environment segments.                      | `string`       | `null`                                          | no       |
 | [storage_class_transitions]            | List of storage class transitions to apply to the buckets lifecycle configuration.                                                                    | `list(object)` | `[{days  = 30, storage_class = "STANDARD_IA"}]` | no       |
 | tags                                   | Optional tags to be applied to all resources.                                                                                                         | `map(string)`  | `{}`                                            | no       |
 
@@ -168,7 +183,7 @@ Reference a submodule with the `//modules/<name>` subpath, for example:
 
 ```hcl
 module "uploads" {
-  source = "github.com/codeforamerica/tofu-modules-aws-s3-bucket//modules/uploads?ref=1.0.0"
+  source = "github.com/codeforamerica/tofu-modules-aws-s3-bucket//modules/uploads?ref=1.1.0"
 
   project        = "my-project"
   environment    = "production"

@@ -101,7 +101,7 @@ variable "name" {
   type        = string
   description = <<-EOT
     Name of the bucket. The project and environment will be prepended to this
-    automatically.
+    automatically, with the state prepended between project and environment if included.
     EOT
   default     = "uploads"
 }
@@ -146,6 +146,15 @@ variable "sensitivity" {
       Sensitivity must be one of: public, internal, confidential, restricted.
       EOT
   }
+}
+
+variable "state" {
+  type        = string
+  description = <<-EOT
+    Optional two-character state code (e.g., WA or MO) component to prefix the bucket name,
+    between the project and environment segments. Only included for state-scoped projects.
+    EOT
+  default     = null
 }
 
 variable "storage_class_transitions" {
