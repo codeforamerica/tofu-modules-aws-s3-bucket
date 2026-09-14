@@ -42,7 +42,7 @@ these differences:
 
 | Name             | Description                                                                                                                        | Type     | Default        | Required |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------- | -------------- | -------- |
-| name             | Name of the bucket. The project and environment will be prepended to this automatically, and the state prepended between project and environment if included (`<project>[-<state>]-<environment>-<name>`).                                          | `string` | `"uploads"`    | no       |
+| name             | Name of the bucket. The project, state, and environment will be prepended to this automatically (state is an optional variable).                                         | `string` | `"uploads"`    | no       |
 | malware_scanning | Malware scanning settings. Scanning and result tagging are always enabled; `enabled` and `tag_objects` are not exposed. See below. | `object` | `{}`           | no       |
 | sensitivity      | Data sensitivity level for the bucket. Valid values are `public`, `internal`, `confidential`, and `restricted`.                    | `string` | `confidential` | no       |
 

@@ -100,8 +100,8 @@ variable "malware_scanning" {
 variable "name" {
   type        = string
   description = <<-EOT
-    Name of the bucket. The project and environment will be prepended to this
-    automatically, with the state prepended between project and environment if included.
+    Name of the bucket. The project, state, and environment will be prepended to this
+    automatically (state is an optional variable).
     EOT
   default     = "uploads"
 }
@@ -151,8 +151,7 @@ variable "sensitivity" {
 variable "state" {
   type        = string
   description = <<-EOT
-    Optional two-character state code (e.g., WA or MO) component to prefix the bucket name,
-    between the project and environment segments. Only included for state-scoped projects.
+    Two-character state code for the state these resources support. This is used in the prefix to all resource names if included.
     EOT
   default     = null
 }
