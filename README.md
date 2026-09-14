@@ -27,7 +27,7 @@ module "module_name" {
 }
 ```
 
-Alternative example, to create a bucket called `my-project-wa-development-documents` (including the state):
+For state specific buckets, you should pass the two-character state abbreviation (lowercase) to `state`. For example, if our bucket was for the state of Washington we would use the following to create `my-project-wa-development-documents`:
 
 ```hcl
 module "module_name" {
