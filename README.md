@@ -48,6 +48,10 @@ tofu init
 tofu plan
 ```
 
+## Naming Convention
+
+Project and environment variables will always be prepended as a prefix to the `name` variable. If the optional two-character state code (e.g. `wa` or `mo`) is included as a variable, it will be added between project and environment to the prefix for named resources.
+
 ## Inputs
 
 | Name                                   | Description                                                                                                                                           | Type           | Default                                         | Required |
@@ -170,10 +174,6 @@ different storage classes, see the [Amazon S3 documentation][storage-class].
 | kms_key_arn               | ARN of the KMS key used for bucket encryption.                                  | `string` |
 | malware_scanning_role_arn | ARN of the IAM role GuardDuty assumes to scan objects. `null` when disabled.    | `string` |
 | name                      | Name of the created bucket.                                                     | `string` |
-
-## Naming Convention
-
-Project and environment variables will always be prepended as a prefix to the `name` variable. If the optional two-character state code (i.e. `wa` or `mo`) is included as a variable, it will be added between project and environment to the prefix for named resources.
 
 ## Submodules
 
