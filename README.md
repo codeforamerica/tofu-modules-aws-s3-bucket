@@ -50,7 +50,10 @@ tofu plan
 
 ## Naming Convention
 
-Project and environment variables will always be prepended as a prefix to the `name` variable. If the optional two-character state code (e.g. `wa` or `mo`) is included as a variable, it will be added between project and environment to the prefix for named resources.
+Project and environment variables will always be prepended as a prefix to the
+`name` variable. If the optional two-character state code (e.g. `wa` or `mo`) is
+included as a variable, it will be added between project and environment to the
+prefix for named resources.
 
 ## Inputs
 
