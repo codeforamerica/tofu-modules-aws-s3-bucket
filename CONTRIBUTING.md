@@ -4,7 +4,7 @@
 
 All commit messages should follow the [Conventional Commits][commits] format.
 This format allows us to automatically generate changelogs and version numbers
-based on the commit messages.
+based on the commit messages. Contributors should not update `CHANGELOG.md`.
 
 Common commit types include:
 

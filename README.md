@@ -14,13 +14,31 @@ uploads. See [Submodules] below.
 ## Usage
 
 Add this module to your `main.tf` (or appropriate) file and configure the inputs
-to match your desired configuration. For example:
+to match your desired configuration. For example, to create a bucket called
+`my-project-development-documents`:
 
 ```hcl
 module "module_name" {
-  source = "github.com/codeforamerica/tofu-modules-aws-s3-bucket?ref=1.0.0"
+  source = "github.com/codeforamerica/tofu-modules-aws-s3-bucket?ref=1.1.0"
 
   project        = "my-project"
+  environment    = "development"
+  logging_bucket = "my-logging-bucket"
+  name           = "documents"
+}
+```
+
+For state specific buckets, you should pass the two-character state abbreviation
+(lowercase) to `state`. For example, if our bucket was for the state of
+Washington we would use the following to create
+`my-project-wa-development-documents`:
+
+```hcl
+module "module_name" {
+  source = "github.com/codeforamerica/tofu-modules-aws-s3-bucket?ref=1.1.0"
+
+  project        = "my-project"
+  state          = "wa"
   environment    = "development"
   logging_bucket = "my-logging-bucket"
   name           = "documents"
@@ -34,24 +52,32 @@ tofu init
 tofu plan
 ```
 
+## Naming Convention
+
+Project and environment variables will always be prepended as a prefix to the
+`name` variable. If the optional two-character state code (e.g. `wa` or `mo`) is
+included as a variable, it will be added between project and environment to the
+prefix for named resources.
+
 ## Inputs
 
 | Name                                   | Description                                                                                                                                           | Type           | Default                                         | Required |
 | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ----------------------------------------------- | -------- |
 | logging_bucket                         | S3 bucket to send access logs to.                                                                                                                     | `string`       | n/a                                             | yes      |
-| name                                   | Name of the bucket. The project and environment will be prepended to this automatically.                                                              | `string`       | n/a                                             | yes      |
+| name                                   | Name of the bucket. The project, state, and environment will be prepended to this automatically (state is an optional variable).                                                             | `string`       | n/a                                             | yes      |
 | project                                | Project that these resources are supporting.                                                                                                          | `string`       | n/a                                             | yes      |
 | abort_incomplete_multipart_upload_days | Number of days to abort incomplete multipart uploads.                                                                                                 | `number`       | `7`                                             | no       |
 | add_suffix                             | Whether to append a random suffix to the bucket name to help ensure it is globally unique. The bucket name is truncated to keep within 63 characters. | `bool`         | `false`                                         | no       |
 | additional_policy_statements           | Additional IAM policy statements to include in the bucket policy, merged with the statements the module always applies.                               | `any`          | `[]`                                            | no       |
 | environment                            | The environment for the deployment.                                                                                                                   | `string`       | `"development"`                                 | no       |
-| expiration                             | Number of days to expire objects. Set to `null` to disable expiration.                                                                                | `number`       | `null`                                          | no       |
+| expiration                             | Number of days before current object versions expire. Set to null to disable expiration.                                                                                | `number`       | `null`                                          | no       |
 | force_delete                           | Whether to force delete the bucket and its contents. Must be set to `true` _and_ applied before the bucket can be deleted.                            | `bool`         | `false`                                         | no       |
 | [kms]                                  | KMS encryption settings for the bucket.                                                                                                               | `object`       | `{}`                                            | no       |
 | [malware_scanning]                     | Malware scanning settings for the bucket, using GuardDuty Malware Protection for S3.                                                                  | `object`       | `{}`                                            | no       |
 | noncurrent_version_expiration_days     | Number of days to expire noncurrent versions of objects.                                                                                              | `number`       | `30`                                            | no       |
 | [object_lock]                          | Object lock settings for the bucket.                                                                                                                  | `object`       | `{}`                                            | no       |
 | sensitivity                            | Data sensitivity level for the bucket. Valid values are `public`, `internal`, `confidential`, and `restricted`.                                       | `string`       | `internal`                                      | no       |
+| state                                  | Two-character state code for the state these resources support. This is used in the prefix to all resource names if included.                      | `string`       | `null`                                          | no       |
 | [storage_class_transitions]            | List of storage class transitions to apply to the buckets lifecycle configuration.                                                                    | `list(object)` | `[{days  = 30, storage_class = "STANDARD_IA"}]` | no       |
 | tags                                   | Optional tags to be applied to all resources.                                                                                                         | `map(string)`  | `{}`                                            | no       |
 
@@ -168,7 +194,7 @@ Reference a submodule with the `//modules/<name>` subpath, for example:
 
 ```hcl
 module "uploads" {
-  source = "github.com/codeforamerica/tofu-modules-aws-s3-bucket//modules/uploads?ref=1.0.0"
+  source = "github.com/codeforamerica/tofu-modules-aws-s3-bucket//modules/uploads?ref=1.1.0"
 
   project        = "my-project"
   environment    = "production"

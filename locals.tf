@@ -3,7 +3,7 @@ locals {
   # enabled. The suffix also includes a leading hyphen.
   suffix_length = 8
 
-  base_name = join("-", [var.project, var.environment, var.name])
+  base_name = join("-", compact([var.project, var.state, var.environment, var.name]))
 
   # When a suffix is added, truncate the base name so the base plus the suffix
   # stays within the 63-character bucket name limit, stripping any trailing
