@@ -68,6 +68,7 @@ variable "kms" {
     allowed_principals = optional(list(string), [])
     arn                = optional(string, null)
     create             = optional(bool, true)
+    multi_region       = optional(bool, true)
     recovery_period    = optional(number, 30)
   })
   description = <<-EOT
@@ -80,6 +81,9 @@ variable "kms" {
       when `create` is `false`.
     - `create`: Whether to create a new KMS key for the bucket. When `false`,
       `arn` must be provided.
+    - `multi_region`: Whether the KMS key is created as multi-region. Only
+      applies when `create` is `true`. This setting can only be configured at
+      creation; changing this on an existing key will have no effect.
     - `recovery_period`: Number of days to recover the created KMS key after
       deletion. Must be between `7` and `30`. Only applies when `create` is
       `true`.

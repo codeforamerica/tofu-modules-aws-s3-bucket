@@ -88,12 +88,18 @@ Configure how the bucket is encrypted with KMS. By default, the module creates a
 new KMS key. To use an existing key instead, set `create` to `false` and provide
 `encryption_key_arn`.
 
-| Name               | Description                                                                                                                       | Type           | Default | Required |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------- | -------- |
-| allowed_principals | List of AWS principal ARNs to allow to use the KMS key, such as ECS task roles. Only applies when `create` is `true`.             | `list(string)` | `[]`    | no       |
-| arn                | ARN of an existing KMS key to use for bucket encryption. Required when `create` is `false`.                                       | `string`       | `null`  | no       |
-| create             | Whether to create a new KMS key for the bucket. When `false`, `arn` must be provided.                                             | `bool`         | `true`  | no       |
-| recovery_period    | Number of days to recover the created KMS key after deletion. Must be between `7` and `30`. Only applies when `create` is `true`. | `number`       | `30`    | no       |
+> [!NOTE]
+> The `multi_region` setting defaults to `true` for newly created KMS keys. This
+> is done to support replication for disaster recovery scenarios. If you _won't_
+> be using multi-region replication, you can set `multi_region` to `false`.
+
+| Name               | Description                                                                                                                                                                                  | Type           | Default | Required |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------- | -------- |
+| allowed_principals | List of AWS principal ARNs to allow to use the KMS key, such as ECS task roles. Only applies when `create` is `true`.                                                                        | `list(string)` | `[]`    | no       |
+| arn                | ARN of an existing KMS key to use for bucket encryption. Required when `create` is `false`.                                                                                                  | `string`       | `null`  | no       |
+| create             | Whether to create a new KMS key for the bucket. When `false`, `arn` must be provided.                                                                                                        | `bool`         | `true`  | no       |
+| multi_region       | Whether the KMS key is created as multi-region. Only applies when `create` is `true`. This setting can only be configured at creation; changing this on an existing key will have no effect. | `bool`         | `true`  | no       |
+| recovery_period    | Number of days to recover the created KMS key after deletion. Must be between `7` and `30`. Only applies when `create` is `true`.                                                            | `number`       | `30`    | no       |
 
 ### malware_scanning
 
