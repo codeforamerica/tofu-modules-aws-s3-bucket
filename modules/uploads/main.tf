@@ -13,6 +13,7 @@ module "bucket" {
   noncurrent_version_expiration_days     = var.noncurrent_version_expiration_days
   object_lock                            = var.object_lock
   project                                = var.project
+  region                                 = var.region
   sensitivity                            = var.sensitivity
   state                                  = var.state
   storage_class_transitions              = var.storage_class_transitions

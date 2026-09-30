@@ -10,6 +10,7 @@ resource "random_string" "suffix" {
 
 resource "aws_s3_bucket" "this" {
   bucket        = local.bucket_name
+  region        = local.region
   force_destroy = var.force_delete
 
   tags = local.tags
@@ -28,6 +29,7 @@ resource "aws_s3_bucket" "this" {
 
 resource "aws_s3_bucket_public_access_block" "this" {
   bucket = aws_s3_bucket.this.id
+  region = local.region
 
   block_public_acls       = true
   block_public_policy     = true
@@ -37,6 +39,7 @@ resource "aws_s3_bucket_public_access_block" "this" {
 
 resource "aws_s3_bucket_ownership_controls" "this" {
   bucket = aws_s3_bucket.this.id
+  region = local.region
 
   rule {
     object_ownership = "BucketOwnerEnforced"
@@ -45,6 +48,7 @@ resource "aws_s3_bucket_ownership_controls" "this" {
 
 resource "aws_s3_bucket_versioning" "this" {
   bucket = aws_s3_bucket.this.id
+  region = local.region
 
   versioning_configuration {
     status = "Enabled"
@@ -58,6 +62,7 @@ resource "aws_s3_bucket_object_lock_configuration" "this" {
   depends_on = [aws_s3_bucket_versioning.this]
 
   bucket = aws_s3_bucket.this.id
+  region = local.region
 
   dynamic "rule" {
     for_each = var.object_lock.days != null ? toset(["this"]) : toset([])
@@ -73,6 +78,7 @@ resource "aws_s3_bucket_object_lock_configuration" "this" {
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
   bucket = aws_s3_bucket.this.id
+  region = local.region
 
   rule {
     apply_server_side_encryption_by_default {
@@ -86,9 +92,17 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
 
 resource "aws_s3_bucket_logging" "this" {
   bucket = aws_s3_bucket.this.id
+  region = local.region
 
   target_bucket = var.logging_bucket
   target_prefix = "${local.logs_path}/s3accesslogs/${local.bucket_name}"
+
+  lifecycle {
+    precondition {
+      condition     = data.aws_s3_bucket.logging.bucket_region == local.region
+      error_message = "The logging bucket must be in the same region as the bucket (${local.region})."
+    }
+  }
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "this" {
@@ -97,6 +111,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
   depends_on = [aws_s3_bucket_versioning.this]
 
   bucket = aws_s3_bucket.this.id
+  region = local.region
 
   rule {
     id     = "state"
@@ -137,6 +152,7 @@ resource "aws_s3_bucket_policy" "this" {
   depends_on = [aws_s3_bucket_public_access_block.this]
 
   bucket = aws_s3_bucket.this.id
+  region = local.region
   policy = jsonencode(merge(local.base_bucket_policy, {
     Statement = concat(local.base_bucket_policy.Statement, var.additional_policy_statements)
   }))

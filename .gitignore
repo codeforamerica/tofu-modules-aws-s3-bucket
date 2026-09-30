@@ -37,3 +37,6 @@ terraform.rc
 # Ignore release artifacts
 release.md
 /*.tar.gz
+
+# Don't commit lock files for modules.
+.terraform.lock.hcl
