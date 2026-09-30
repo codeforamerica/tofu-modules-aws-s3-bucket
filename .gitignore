@@ -10,10 +10,10 @@ crash.log
 crash.*.log
 
 # Exclude all .tfvars files, which are likely to contain sensitive data, such as
-# password, private keys, and other secrets. These should not be part of version
-# control as they are data points which are potentially sensitive and subject
-# to change depending on the environment.
+# password, private keys, and other secrets. Make an exception for trivy.tfvars
+# which is used for static analysis and contains sample values.
 *.tfvars
+!trivy.tfvars
 *.tfvars.json
 .env
 

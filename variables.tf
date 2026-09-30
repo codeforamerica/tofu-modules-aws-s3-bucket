@@ -111,6 +111,7 @@ variable "logging_bucket" {
   description = <<-EOT
     S3 bucket to send access logs to. Must be in the same region as the bucket.
     EOT
+  default = null
 }
 
 variable "malware_scanning" {

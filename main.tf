@@ -90,7 +90,9 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
   }
 }
 
-resource "aws_s3_bucket_logging" "this" {
+resource "aws_s3_bucket_logging" "enabled" {
+  for_each = var.logging_bucket != null ? toset(["this"]) : toset([])
+
   bucket = aws_s3_bucket.this.id
   region = local.region
 
@@ -99,7 +101,7 @@ resource "aws_s3_bucket_logging" "this" {
 
   lifecycle {
     precondition {
-      condition     = data.aws_s3_bucket.logging.bucket_region == local.region
+      condition     = data.aws_s3_bucket.logging["this"].bucket_region == local.region
       error_message = "The logging bucket must be in the same region as the bucket (${local.region})."
     }
   }
