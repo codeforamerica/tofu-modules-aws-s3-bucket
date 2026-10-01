@@ -3,8 +3,11 @@ misconfiguration:
   ignore-unfixed: true
   terraform:
     exclude-downloaded-modules: true
+    vars:
+      - trivy.tfvars
 scan:
   scanners:
     - misconfig
+    - secret
   skip-dirs:
     - "**/*/.terraform"

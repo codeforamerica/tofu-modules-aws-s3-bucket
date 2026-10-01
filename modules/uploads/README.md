@@ -40,8 +40,13 @@ module "uploads" {
 This submodule accepts the same inputs as the [root module][root-module], with
 these differences:
 
+> [!NOTE]
+> `logging_bucket` is required here, unlike in the root module. Upload buckets
+> _must_ have access logging enabled.
+
 | Name             | Description                                                                                                                        | Type     | Default        | Required |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------- | -------------- | -------- |
+| logging_bucket   | S3 bucket to send access logs to. Must be in the same region as the bucket.                                                        | `string` | n/a            | yes      |
 | name             | Name of the bucket. The project, state, and environment will be prepended to this automatically (state is an optional variable).   | `string` | `"uploads"`    | no       |
 | malware_scanning | Malware scanning settings. Scanning and result tagging are always enabled; `enabled` and `tag_objects` are not exposed. See below. | `object` | `{}`           | no       |
 | sensitivity      | Data sensitivity level for the bucket. Valid values are `public`, `internal`, `confidential`, and `restricted`.                    | `string` | `confidential` | no       |
