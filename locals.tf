@@ -1,4 +1,6 @@
 locals {
+  region = coalesce(var.region, data.aws_region.current.region)
+
   # Number of random characters in the suffix appended when add_suffix is
   # enabled. The suffix also includes a leading hyphen.
   suffix_length = 8

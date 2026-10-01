@@ -104,7 +104,9 @@ variable "kms" {
 
 variable "logging_bucket" {
   type        = string
-  description = "S3 bucket to send access logs to."
+  description = <<-EOT
+    S3 bucket to send access logs to. Must be in the same region as the bucket.
+    EOT
 }
 
 variable "malware_scanning" {
@@ -211,6 +213,15 @@ variable "project" {
     Project that these resources are supporting. This is used in the prefix to
     all resource names.
     EOT
+}
+
+variable "region" {
+  type        = string
+  description = <<-EOT
+    AWS region where the bucket and its resources will be created. Leave `null`
+    to use the region set on the AWS provider.
+    EOT
+  default     = null
 }
 
 variable "sensitivity" {
