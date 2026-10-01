@@ -111,7 +111,16 @@ variable "logging_bucket" {
   description = <<-EOT
     S3 bucket to send access logs to. Must be in the same region as the bucket.
     EOT
-  default = null
+  default     = null
+}
+
+variable "logging_cloudwatch_log_group_arn" {
+  type        = string
+  description = <<-EOT
+    ARN of a CloudWatch Logs log group to send access logs to. Must be in the
+    same region as the bucket.
+    EOT
+  default     = null
 }
 
 variable "malware_scanning" {
