@@ -63,6 +63,7 @@ variable "kms" {
     allowed_principals = optional(list(string), [])
     arn                = optional(string, null)
     create             = optional(bool, true)
+    multi_region       = optional(bool, true)
     recovery_period    = optional(number, 30)
   })
   description = <<-EOT
