@@ -9,6 +9,7 @@ module "bucket" {
   force_delete                           = var.force_delete
   kms                                    = var.kms
   logging_bucket                         = var.logging_bucket
+  logging_cloudwatch_log_group_arn       = var.logging_cloudwatch_log_group_arn
   name                                   = var.name
   noncurrent_version_expiration_days     = var.noncurrent_version_expiration_days
   object_lock                            = var.object_lock

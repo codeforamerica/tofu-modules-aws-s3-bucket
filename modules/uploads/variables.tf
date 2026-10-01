@@ -76,7 +76,28 @@ variable "logging_bucket" {
   type        = string
   description = <<-EOT
     S3 bucket to send access logs to. Must be in the same region as the bucket.
+    At least one of `logging_bucket` or `logging_cloudwatch_log_group_arn` must
+    be specified.
     EOT
+  default     = null
+
+  validation {
+    condition     = var.logging_bucket != null || var.logging_cloudwatch_log_group_arn != null
+    error_message = <<-EOT
+      At least one of logging_bucket or logging_cloudwatch_log_group_arn must
+      be specified.
+      EOT
+  }
+}
+
+variable "logging_cloudwatch_log_group_arn" {
+  type        = string
+  description = <<-EOT
+    ARN of a CloudWatch Logs log group to send access logs to. Must be in the
+    same region as the bucket. At least one of `logging_bucket` or
+    `logging_cloudwatch_log_group_arn` must be specified.
+    EOT
+  default     = null
 }
 
 variable "malware_scanning" {

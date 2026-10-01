@@ -90,23 +90,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
   }
 }
 
-resource "aws_s3_bucket_logging" "enabled" {
-  for_each = var.logging_bucket != null ? toset(["this"]) : toset([])
-
-  bucket = aws_s3_bucket.this.id
-  region = local.region
-
-  target_bucket = var.logging_bucket
-  target_prefix = "${local.logs_path}/s3accesslogs/${local.bucket_name}"
-
-  lifecycle {
-    precondition {
-      condition     = data.aws_s3_bucket.logging["this"].bucket_region == local.region
-      error_message = "The logging bucket must be in the same region as the bucket (${local.region})."
-    }
-  }
-}
-
 resource "aws_s3_bucket_lifecycle_configuration" "this" {
   # Referencing noncurrent-version behavior requires versioning to be enabled
   # first.
