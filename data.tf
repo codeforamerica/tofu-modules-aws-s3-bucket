@@ -10,3 +10,10 @@ data "aws_s3_bucket" "logging" {
   bucket = var.logging_bucket
   region = local.region
 }
+
+data "aws_s3_bucket" "replica_logging" {
+  for_each = var.replication.enabled && var.replication.logging_bucket != null ? toset(["this"]) : toset([])
+
+  bucket = var.replication.logging_bucket
+  region = local.replica_region
+}

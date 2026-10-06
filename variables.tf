@@ -238,6 +238,40 @@ variable "region" {
   default     = null
 }
 
+variable "replication" {
+  type = object({
+    enabled        = optional(bool, false)
+    kms_arn        = optional(string, null)
+    logging_bucket = optional(string, null)
+    region         = optional(string, null)
+  })
+  description = <<-EOT
+    Cross-region replication settings for the bucket. When enabled, the module
+    creates a replica bucket in another region with the same configuration as
+    the primary bucket, and replicates new objects to it.
+
+    - `enabled`: Whether to replicate the bucket to another region.
+    - `kms_arn`: ARN of an existing KMS key in the replica region to encrypt the
+      replica bucket. Required when `kms.create` is `false`. When the module
+      creates the key, it creates a replica of that key instead.
+    - `logging_bucket`: S3 bucket to send the replica bucket's access logs to.
+      Must be in the replica region.
+    - `region`: Region to replicate to. Defaults to `us-west-2`, or `us-east-1`
+      if the bucket is in a `us-west-*` region.
+    EOT
+  default     = {}
+
+  validation {
+    condition     = !var.replication.enabled || var.kms.create || var.replication.kms_arn != null
+    error_message = "When kms.create is false, replication.kms_arn must be provided."
+  }
+
+  validation {
+    condition     = var.replication.kms_arn == null || !var.kms.create
+    error_message = "When kms.create is true, replication.kms_arn must not be set."
+  }
+}
+
 variable "sensitivity" {
   type        = string
   description = <<-EOT

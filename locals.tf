@@ -28,4 +28,13 @@ locals {
   kms_key_arn = var.kms.create ? aws_kms_key.bucket["this"].arn : var.kms.arn
   logs_path   = "/AWSLogs/${data.aws_caller_identity.identity.account_id}"
   tags        = merge({ sensitivity = var.sensitivity }, var.tags)
+
+  # Default to us-west-2, or us-east-1 if the bucket is already out west.
+  replica_region      = coalesce(var.replication.region, startswith(local.region, "us-west") ? "us-east-1" : "us-west-2")
+  replica_bucket_name = "${local.bucket_name}-replica"
+  replica_kms_key_arn = (
+    !var.replication.enabled ? null
+    : var.kms.create ? aws_kms_replica_key.replica["this"].arn
+    : var.replication.kms_arn
+  )
 }
