@@ -1,0 +1,54 @@
+Version: "2012-10-17"
+Statement:
+- Sid: AllowReadReplicationConfiguration
+  Effect: Allow
+  Action:
+  - s3:GetReplicationConfiguration
+  - s3:ListBucket
+  Resource:
+  - "arn:${partition}:s3:::${bucket}"
+- Sid: AllowReadSourceObjects
+  Effect: Allow
+  Action:
+  - s3:GetObjectLegalHold
+  - s3:GetObjectRetention
+  - s3:GetObjectVersionAcl
+  - s3:GetObjectVersionForReplication
+  - s3:GetObjectVersionTagging
+  Resource:
+  - "arn:${partition}:s3:::${bucket}/*"
+- Sid: AllowWriteReplicaObjects
+  Effect: Allow
+  Action:
+  - s3:ReplicateObject
+  - s3:ReplicateTags
+%{ if delete_markers ~}
+  - s3:ReplicateDelete
+%{ endif ~}
+  Resource:
+  - "arn:${partition}:s3:::${replica_bucket}/*"
+- Sid: AllowDecryptSourceObjects
+  Effect: Allow
+  Action:
+  - kms:Decrypt
+  Resource:
+  - "${kms_key_arn}"
+  Condition:
+    StringEquals:
+      kms:ViaService: s3.${region}.amazonaws.com
+    # The encryption context is the bucket ARN (not the object ARN) because the
+    # bucket has S3 Bucket Keys enabled.
+    StringLike:
+      kms:EncryptionContext:aws:s3:arn: "arn:${partition}:s3:::${bucket}"
+- Sid: AllowEncryptReplicaObjects
+  Effect: Allow
+  Action:
+  - kms:Encrypt
+  - kms:GenerateDataKey
+  Resource:
+  - "${replica_kms_key_arn}"
+  Condition:
+    StringEquals:
+      kms:ViaService: s3.${replica_region}.amazonaws.com
+    StringLike:
+      kms:EncryptionContext:aws:s3:arn: "arn:${partition}:s3:::${replica_bucket}"

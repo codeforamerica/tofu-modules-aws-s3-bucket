@@ -78,6 +78,7 @@ prefix for named resources.
 | noncurrent_version_expiration_days     | Number of days to expire noncurrent versions of objects.                                                                                              | `number`       | `30`                                            | no       |
 | [object_lock]                          | Object lock settings for the bucket.                                                                                                                  | `object`       | `{}`                                            | no       |
 | region                                 | AWS region where the bucket and its resources will be created. Leave `null` to use the region set on the AWS provider.                                | `string`       | `null`                                          | no       |
+| [replication]                          | Cross-region replication settings for the bucket.                                                                                                     | `object`       | `{}`                                            | no       |
 | sensitivity                            | Data sensitivity level for the bucket. Valid values are `public`, `internal`, `confidential`, and `restricted`.                                       | `string`       | `internal`                                      | no       |
 | state                                  | Two-character state code for the state these resources support. This is used in the prefix to all resource names if included.                         | `string`       | `null`                                          | no       |
 | [storage_class_transitions]            | List of storage class transitions to apply to the buckets lifecycle configuration.                                                                    | `list(object)` | `[{days  = 30, storage_class = "STANDARD_IA"}]` | no       |
@@ -160,6 +161,49 @@ be disabled.
 | enabled | Whether to enable object lock on the bucket. Can be enabled on an existing bucket, but cannot be disabled once enabled. | `bool`   | `true`         | no       |
 | mode    | Default retention mode. Must be `GOVERNANCE` or `COMPLIANCE`. Only applies when `days` is set.                          | `string` | `"GOVERNANCE"` | no       |
 
+### replication
+
+Replicate the bucket to a second region for disaster recovery. When enabled, the
+module creates a replica bucket named `<bucket>-replica` in the replica region,
+with the same configurations as the primary bucket. It also creates an IAM role
+that S3 assumes to replicate objects, and a replication configuration on the
+primary bucket.
+
+By default, the replica is created in `us-west-2`, or in `us-east-1` if the
+bucket is in a `us-west-*` region. Set `region` to choose a different one.
+
+The replica bucket's KMS key is chosen in this order:
+
+1. If `kms_arn` is set, that key is used.
+2. If the module created a multi-region key for the primary bucket, a replica
+   of that key is created in the replica region.
+3. If the module created a single-region key for the primary bucket, a new
+   single-region key is created in the replica region. The plan emits a warning
+   when `kms.multi_region` is `true` but the existing key is single-region,
+   since that setting can't be changed after the key is created.
+
+When using an existing key for the primary bucket (`kms.create = false`),
+`kms_arn` is required.
+
+Delete markers aren't replicated by default, so deleting an object in the
+primary bucket doesn't delete it from the replica. Set `delete_markers` to
+`true` for buckets where deletes are a regular occurrence and the replica
+should follow them.
+
+Replication only applies to objects written after it is enabled. To copy
+objects that already exist in the bucket, run an
+[S3 Batch Replication][batch-replication] job.
+
+| Name                             | Description                                                                                                                  | Type     | Default      | Required |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------- | ------------ | -------- |
+| delete_markers                   | Whether to replicate delete markers to the replica bucket.                                                                   | `bool`   | `false`      | no       |
+| enabled                          | Whether to replicate the bucket to another region.                                                                           | `bool`   | `false`      | no       |
+| kms_arn                          | ARN of an existing KMS key in the replica region to encrypt the replica bucket. Required when `kms.create` is `false`.       | `string` | `null`       | no       |
+| logging_bucket                   | S3 bucket to send the replica bucket's access logs to. Must be in the replica region.                                        | `string` | `null`       | no       |
+| logging_cloudwatch_log_group_arn | ARN of a CloudWatch Logs log group to send the replica bucket's access logs to. Must be in the replica region.               | `string` | `null`       | no       |
+| region                           | Region to replicate to. Defaults to `us-west-2`, or `us-east-1` if the bucket is in a `us-west-*` region.                    | `string` | `null`       | no       |
+| storage_class                    | Storage class for replicated objects. One of `STANDARD`, `STANDARD_IA`, `ONEZONE_IA`, `INTELLIGENT_TIERING`, `GLACIER_IR`, `GLACIER`, or `DEEP_ARCHIVE`. | `string` | `"STANDARD"` | no       |
+
 ### storage_class_transitions
 
 You can define multiple [storage class][storage-class] transitions for the
@@ -189,6 +233,9 @@ different storage classes, see the [Amazon S3 documentation][storage-class].
 | kms_key_arn               | ARN of the KMS key used for bucket encryption.                                  | `string` |
 | malware_scanning_role_arn | ARN of the IAM role GuardDuty assumes to scan objects. `null` when disabled.    | `string` |
 | name                      | Name of the created bucket.                                                     | `string` |
+| replica_arn               | Full ARN of the replica bucket. `null` when disabled.                           | `string` |
+| replica_kms_key_arn       | ARN of the KMS key used for replica bucket encryption. `null` when disabled.    | `string` |
+| replica_name              | Name of the replica bucket. `null` when disabled.                               | `string` |
 
 ## Submodules
 
@@ -216,6 +263,7 @@ Follow the [contributing guidelines][contributing] to contribute to this
 repository.
 
 [badge-release]: https://img.shields.io/github/v/release/codeforamerica/tofu-modules-aws-s3-bucket?logo=github&label=Latest%20Release
+[batch-replication]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-batch-replication-batch.html
 [contributing]: CONTRIBUTING.md
 [kms]: #kms
 [latest-release]: https://github.com/codeforamerica/tofu-modules-aws-s3-bucket/releases/latest
@@ -223,6 +271,7 @@ repository.
 [malware_scanning]: #malware_scanning
 [object-lock]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html
 [object_lock]: #object_lock
+[replication]: #replication
 [storage-class]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html
 [storage_class_transitions]: #storage_class_transitions
 [submodules]: #submodules
