@@ -240,24 +240,33 @@ variable "region" {
 
 variable "replication" {
   type = object({
-    enabled        = optional(bool, false)
-    kms_arn        = optional(string, null)
-    logging_bucket = optional(string, null)
-    region         = optional(string, null)
+    delete_markers                   = optional(bool, false)
+    enabled                          = optional(bool, false)
+    kms_arn                          = optional(string, null)
+    logging_bucket                   = optional(string, null)
+    logging_cloudwatch_log_group_arn = optional(string, null)
+    region                           = optional(string, null)
+    storage_class                    = optional(string, "STANDARD")
   })
   description = <<-EOT
     Cross-region replication settings for the bucket. When enabled, the module
     creates a replica bucket in another region with the same configuration as
     the primary bucket, and replicates new objects to it.
 
+    - `delete_markers`: Whether to replicate delete markers, so deleting an
+      object in the bucket also hides it in the replica.
     - `enabled`: Whether to replicate the bucket to another region.
     - `kms_arn`: ARN of an existing KMS key in the replica region to encrypt the
-      replica bucket. Required when `kms.create` is `false`. When the module
-      creates the key, it creates a replica of that key instead.
+      replica bucket. Required when `kms.create` is `false`. When not set, the
+      module replicates its own key if it's multi-region, or creates a new key
+      in the replica region if it isn't.
     - `logging_bucket`: S3 bucket to send the replica bucket's access logs to.
       Must be in the replica region.
+    - `logging_cloudwatch_log_group_arn`: ARN of a CloudWatch Logs log group to
+      send the replica bucket's access logs to. Must be in the replica region.
     - `region`: Region to replicate to. Defaults to `us-west-2`, or `us-east-1`
       if the bucket is in a `us-west-*` region.
+    - `storage_class`: Storage class for objects written to the replica.
     EOT
   default     = {}
 
@@ -267,8 +276,14 @@ variable "replication" {
   }
 
   validation {
-    condition     = var.replication.kms_arn == null || !var.kms.create
-    error_message = "When kms.create is true, replication.kms_arn must not be set."
+    condition = contains([
+      "STANDARD", "STANDARD_IA", "ONEZONE_IA", "INTELLIGENT_TIERING",
+      "GLACIER_IR", "GLACIER", "DEEP_ARCHIVE",
+    ], var.replication.storage_class)
+    error_message = <<-EOT
+      replication.storage_class must be one of: STANDARD, STANDARD_IA,
+      ONEZONE_IA, INTELLIGENT_TIERING, GLACIER_IR, GLACIER, DEEP_ARCHIVE.
+      EOT
   }
 }
 

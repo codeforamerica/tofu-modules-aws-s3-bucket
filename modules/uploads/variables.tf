@@ -165,6 +165,23 @@ variable "region" {
   default     = null
 }
 
+variable "replication" {
+  type = object({
+    delete_markers                   = optional(bool, false)
+    enabled                          = optional(bool, false)
+    kms_arn                          = optional(string, null)
+    logging_bucket                   = optional(string, null)
+    logging_cloudwatch_log_group_arn = optional(string, null)
+    region                           = optional(string, null)
+    storage_class                    = optional(string, "STANDARD")
+  })
+  description = <<-EOT
+    Cross-region replication settings for the bucket. See the root module for
+    details.
+    EOT
+  default     = {}
+}
+
 variable "sensitivity" {
   type        = string
   description = <<-EOT

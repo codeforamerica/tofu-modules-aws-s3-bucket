@@ -165,37 +165,44 @@ be disabled.
 
 Replicate the bucket to a second region for disaster recovery. When enabled, the
 module creates a replica bucket named `<bucket>-replica` in the replica region,
-with the same public access block, ownership controls, versioning, object lock,
-lifecycle rules, and TLS-only bucket policy as the primary bucket. It also
-creates an IAM role that S3 assumes to replicate objects, and a replication
-configuration on the primary bucket.
+with the same configurations as the primary bucket. It also creates an IAM role
+that S3 assumes to replicate objects, and a replication configuration on the
+primary bucket.
 
 By default, the replica is created in `us-west-2`, or in `us-east-1` if the
 bucket is in a `us-west-*` region. Set `region` to choose a different one.
 
-When the module creates the KMS key (`kms.create = true`), it also creates a
-replica of that key in the replica region. This requires the key to be
-multi-region, which is the default for newly created keys. A key created as
-single-region can't be converted, and the plan fails with an error if
-replication is enabled on a bucket whose key is single-region. When using an
-existing key (`kms.create = false`), provide a key in the replica region with
-`kms_arn`.
+The replica bucket's KMS key is chosen in this order:
 
-> [!NOTE]
-> Delete markers aren't replicated, so deleting an object in the primary bucket
-> doesn't delete it from the replica. The replica's own lifecycle rules handle
-> expiration.
+1. If `kms_arn` is set, that key is used.
+2. If the module created a multi-region key for the primary bucket, a replica
+   of that key is created in the replica region.
+3. If the module created a single-region key for the primary bucket, a new
+   single-region key is created in the replica region. The plan emits a warning
+   when `kms.multi_region` is `true` but the existing key is single-region,
+   since that setting can't be changed after the key is created.
+
+When using an existing key for the primary bucket (`kms.create = false`),
+`kms_arn` is required.
+
+Delete markers aren't replicated by default, so deleting an object in the
+primary bucket doesn't delete it from the replica. Set `delete_markers` to
+`true` for buckets where deletes are a regular occurrence and the replica
+should follow them.
 
 Replication only applies to objects written after it is enabled. To copy
 objects that already exist in the bucket, run an
 [S3 Batch Replication][batch-replication] job.
 
-| Name           | Description                                                                                                                      | Type     | Default | Required |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- | -------- |
-| enabled        | Whether to replicate the bucket to another region.                                                                               | `bool`   | `false` | no       |
-| kms_arn        | ARN of an existing KMS key in the replica region to encrypt the replica bucket. Required when `kms.create` is `false`.           | `string` | `null`  | no       |
-| logging_bucket | S3 bucket to send the replica bucket's access logs to. Must be in the replica region.                                            | `string` | `null`  | no       |
-| region         | Region to replicate to. Defaults to `us-west-2`, or `us-east-1` if the bucket is in a `us-west-*` region.                        | `string` | `null`  | no       |
+| Name                             | Description                                                                                                                  | Type     | Default      | Required |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------- | ------------ | -------- |
+| delete_markers                   | Whether to replicate delete markers to the replica bucket.                                                                   | `bool`   | `false`      | no       |
+| enabled                          | Whether to replicate the bucket to another region.                                                                           | `bool`   | `false`      | no       |
+| kms_arn                          | ARN of an existing KMS key in the replica region to encrypt the replica bucket. Required when `kms.create` is `false`.       | `string` | `null`       | no       |
+| logging_bucket                   | S3 bucket to send the replica bucket's access logs to. Must be in the replica region.                                        | `string` | `null`       | no       |
+| logging_cloudwatch_log_group_arn | ARN of a CloudWatch Logs log group to send the replica bucket's access logs to. Must be in the replica region.               | `string` | `null`       | no       |
+| region                           | Region to replicate to. Defaults to `us-west-2`, or `us-east-1` if the bucket is in a `us-west-*` region.                    | `string` | `null`       | no       |
+| storage_class                    | Storage class for replicated objects. One of `STANDARD`, `STANDARD_IA`, `ONEZONE_IA`, `INTELLIGENT_TIERING`, `GLACIER_IR`, `GLACIER`, or `DEEP_ARCHIVE`. | `string` | `"STANDARD"` | no       |
 
 ### storage_class_transitions
 

@@ -22,6 +22,9 @@ Statement:
   Action:
   - s3:ReplicateObject
   - s3:ReplicateTags
+%{ if delete_markers ~}
+  - s3:ReplicateDelete
+%{ endif ~}
   Resource:
   - "arn:${partition}:s3:::${replica_bucket}/*"
 - Sid: AllowDecryptSourceObjects

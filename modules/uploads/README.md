@@ -69,5 +69,8 @@ these differences:
 | kms_key_arn               | ARN of the KMS key used for bucket encryption.         | `string` |
 | malware_scanning_role_arn | ARN of the IAM role GuardDuty assumes to scan objects. | `string` |
 | name                      | Name of the created bucket.                            | `string` |
+| replica_arn               | Full ARN of the replica bucket. `null` when disabled.  | `string` |
+| replica_kms_key_arn       | ARN of the replica bucket's KMS key. `null` when disabled. | `string` |
+| replica_name              | Name of the replica bucket. `null` when disabled.      | `string` |
 
 [root-module]: ../../README.md

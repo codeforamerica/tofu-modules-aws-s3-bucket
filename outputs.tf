@@ -1,6 +1,6 @@
 output "arn" {
   description = "Full ARN of the created bucket."
-  value       = aws_s3_bucket.this.arn
+  value       = module.bucket.arn
 }
 
 output "domain_name" {
@@ -8,7 +8,7 @@ output "domain_name" {
     Domain name of the created bucket, in the format
     `bucketname.s3.amazonaws.com`.
     EOT
-  value       = aws_s3_bucket.this.bucket_domain_name
+  value       = module.bucket.domain_name
 }
 
 output "kms_key_arn" {
@@ -26,14 +26,14 @@ output "malware_scanning_role_arn" {
 
 output "name" {
   description = "Name of the created bucket."
-  value       = aws_s3_bucket.this.bucket
+  value       = module.bucket.name
 }
 
 output "replica_arn" {
   description = <<-EOT
     Full ARN of the replica bucket. `null` when replication is disabled.
     EOT
-  value       = var.replication.enabled ? aws_s3_bucket.replica["this"].arn : null
+  value       = var.replication.enabled ? module.replica["this"].arn : null
 }
 
 output "replica_kms_key_arn" {
@@ -48,5 +48,5 @@ output "replica_name" {
   description = <<-EOT
     Name of the replica bucket. `null` when replication is disabled.
     EOT
-  value       = var.replication.enabled ? aws_s3_bucket.replica["this"].bucket : null
+  value       = var.replication.enabled ? module.replica["this"].name : null
 }
