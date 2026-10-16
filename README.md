@@ -175,9 +175,9 @@ bucket is in a `us-west-*` region. Set `region` to choose a different one.
 The replica bucket's KMS key is chosen in this order:
 
 1. If `kms_arn` is set, that key is used.
-2. If the module created a multi-region key for the primary bucket, a replica
+1. If the module created a multi-region key for the primary bucket, a replica
    of that key is created in the replica region.
-3. If the module created a single-region key for the primary bucket, a new
+1. If the module created a single-region key for the primary bucket, a new
    single-region key is created in the replica region. The plan emits a warning
    when `kms.multi_region` is `true` but the existing key is single-region,
    since that setting can't be changed after the key is created.
@@ -226,16 +226,14 @@ different storage classes, see the [Amazon S3 documentation][storage-class].
 
 ## Outputs
 
-| Name                      | Description                                                                     | Type     |
-| ------------------------- | ------------------------------------------------------------------------------- | -------- |
-| arn                       | Full ARN of the created bucket.                                                 | `string` |
-| domain_name               | Domain name of the created bucket, in the format `bucketname.s3.amazonaws.com`. | `string` |
-| kms_key_arn               | ARN of the KMS key used for bucket encryption.                                  | `string` |
-| malware_scanning_role_arn | ARN of the IAM role GuardDuty assumes to scan objects. `null` when disabled.    | `string` |
-| name                      | Name of the created bucket.                                                     | `string` |
-| replica_arn               | Full ARN of the replica bucket. `null` when disabled.                           | `string` |
-| replica_kms_key_arn       | ARN of the KMS key used for replica bucket encryption. `null` when disabled.    | `string` |
-| replica_name              | Name of the replica bucket. `null` when disabled.                               | `string` |
+| Name                      | Description                                                                                   | Type     |
+| ------------------------- | --------------------------------------------------------------------------------------------- | -------- |
+| arn                       | Full ARN of the created bucket.                                                               | `string` |
+| domain_name               | Domain name of the created bucket, in the format `bucketname.s3.amazonaws.com`.               | `string` |
+| kms_key_arn               | ARN of the KMS key used for bucket encryption.                                                | `string` |
+| malware_scanning_role_arn | ARN of the IAM role GuardDuty assumes to scan objects. `null` when disabled.                  | `string` |
+| name                      | Name of the created bucket.                                                                   | `string` |
+| replica                   | Replica bucket details, with keys for `arn`, `kms_key_arn`, and `name`. `null` when disabled. | `object` |
 
 ## Submodules
 

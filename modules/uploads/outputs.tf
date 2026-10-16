@@ -26,24 +26,10 @@ output "name" {
   value       = module.bucket.name
 }
 
-output "replica_arn" {
+output "replica" {
   description = <<-EOT
-    Full ARN of the replica bucket. `null` when replication is disabled.
+    Replica bucket details, with keys for `arn`, `kms_key_arn`, and `name`.
+    `null` when replication is disabled.
     EOT
-  value       = module.bucket.replica_arn
-}
-
-output "replica_kms_key_arn" {
-  description = <<-EOT
-    ARN of the KMS key used for replica bucket encryption. `null` when
-    replication is disabled.
-    EOT
-  value       = module.bucket.replica_kms_key_arn
-}
-
-output "replica_name" {
-  description = <<-EOT
-    Name of the replica bucket. `null` when replication is disabled.
-    EOT
-  value       = module.bucket.replica_name
+  value       = module.bucket.replica
 }
