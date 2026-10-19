@@ -157,6 +157,11 @@ resource "aws_s3_bucket_replication_configuration" "this" {
 
   lifecycle {
     precondition {
+      condition     = local.replica_region != null
+      error_message = "replication.region is required outside the aws partition (${data.aws_partition.current.partition})."
+    }
+
+    precondition {
       condition     = local.replica_region != local.region
       error_message = "The replica region must be different from the bucket region (${local.region})."
     }

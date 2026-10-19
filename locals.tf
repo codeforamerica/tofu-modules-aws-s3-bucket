@@ -28,8 +28,15 @@ locals {
   kms_key_arn = var.kms.create ? aws_kms_key.bucket["this"].arn : var.kms.arn
   tags        = merge({ sensitivity = var.sensitivity }, var.tags)
 
-  # Default to us-west-2, or us-east-1 if the bucket is already out west.
-  replica_region      = coalesce(var.replication.region, startswith(local.region, "us-west") ? "us-east-1" : "us-west-2")
+  # Default to us-west-2, or us-east-1 if the bucket is already out west. Those
+  # regions only exist in the commercial partition, so other partitions must
+  # set replication.region.
+  default_replica_region = (
+    data.aws_partition.current.partition != "aws" ? null
+    : startswith(local.region, "us-west") ? "us-east-1"
+    : "us-west-2"
+  )
+  replica_region      = var.replication.region != null ? var.replication.region : local.default_replica_region
   replica_bucket_name = "${local.bucket_name}-replica"
 
   # Where the replica bucket's key comes from. A caller-provided key always

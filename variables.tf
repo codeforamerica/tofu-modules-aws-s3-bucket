@@ -265,7 +265,8 @@ variable "replication" {
     - `logging_cloudwatch_log_group_arn`: ARN of a CloudWatch Logs log group to
       send the replica bucket's access logs to. Must be in the replica region.
     - `region`: Region to replicate to. Defaults to `us-west-2`, or `us-east-1`
-      if the bucket is in a `us-west-*` region.
+      if the bucket is in a `us-west-*` region. Required outside the commercial
+      `aws` partition, such as in GovCloud.
     - `storage_class`: Storage class for objects written to the replica.
     EOT
   default     = {}

@@ -171,6 +171,8 @@ primary bucket.
 
 By default, the replica is created in `us-west-2`, or in `us-east-1` if the
 bucket is in a `us-west-*` region. Set `region` to choose a different one.
+Outside the commercial `aws` partition, such as in GovCloud, `region` is
+required.
 
 The replica bucket's KMS key is chosen in this order:
 
