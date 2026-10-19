@@ -36,8 +36,15 @@ locals {
     : startswith(local.region, "us-west") ? "us-east-1"
     : "us-west-2"
   )
-  replica_region      = var.replication.region != null ? var.replication.region : local.default_replica_region
-  replica_bucket_name = "${local.bucket_name}-replica"
+  replica_region = var.replication.region != null ? var.replication.region : local.default_replica_region
+
+  # Appending "-replica" can push a long bucket name past 63 characters. When it
+  # would, truncate the name and add a short hash of the full name so the
+  # replica name stays unique.
+  replica_bucket_name = (
+    length(local.bucket_name) <= 63 - length("-replica") ? "${local.bucket_name}-replica"
+    : "${replace(substr(local.bucket_name, 0, 46), "/-+$/", "")}-${substr(sha1(local.bucket_name), 0, 8)}-replica"
+  )
 
   # Where the replica bucket's key comes from. A caller-provided key always
   # wins. Otherwise a module-created primary key is replicated when it's

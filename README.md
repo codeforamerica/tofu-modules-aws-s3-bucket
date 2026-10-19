@@ -167,7 +167,9 @@ Replicate the bucket to a second region for disaster recovery. When enabled, the
 module creates a replica bucket named `<bucket>-replica` in the replica region,
 with the same configurations as the primary bucket. It also creates an IAM role
 that S3 assumes to replicate objects, and a replication configuration on the
-primary bucket.
+primary bucket. If `<bucket>-replica` would be longer than 63 characters, the
+bucket name is truncated and a short hash of the full name is added before
+`-replica`.
 
 By default, the replica is created in `us-west-2`, or in `us-east-1` if the
 bucket is in a `us-west-*` region. Set `region` to choose a different one.
