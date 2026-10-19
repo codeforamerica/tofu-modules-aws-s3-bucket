@@ -25,3 +25,10 @@ output "name" {
   description = "Name of the created bucket."
   value       = module.bucket.name
 }
+
+output "replica" {
+  description = <<-EOT
+    Replica bucket details. `null` when replication is disabled.
+    EOT
+  value       = module.bucket.replica
+}

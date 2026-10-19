@@ -15,6 +15,7 @@ module "bucket" {
   object_lock                            = var.object_lock
   project                                = var.project
   region                                 = var.region
+  replication                            = var.replication
   sensitivity                            = var.sensitivity
   state                                  = var.state
   storage_class_transitions              = var.storage_class_transitions
