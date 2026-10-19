@@ -165,5 +165,10 @@ resource "aws_s3_bucket_replication_configuration" "this" {
       condition     = local.replica_region != local.region
       error_message = "The replica region must be different from the bucket region (${local.region})."
     }
+
+    precondition {
+      condition     = var.replication.kms_arn == null || try(split(":", var.replication.kms_arn)[3], "") == local.replica_region
+      error_message = "replication.kms_arn must be a key in the replica region (${local.replica_region})."
+    }
   }
 }
