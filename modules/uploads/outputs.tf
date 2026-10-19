@@ -28,8 +28,7 @@ output "name" {
 
 output "replica" {
   description = <<-EOT
-    Replica bucket details, with keys for `arn`, `kms_key_arn`, and `name`.
-    `null` when replication is disabled.
+    Replica bucket details. `null` when replication is disabled.
     EOT
   value       = module.bucket.replica
 }

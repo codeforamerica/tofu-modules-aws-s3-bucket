@@ -62,13 +62,21 @@ these differences:
 
 ## Outputs
 
-| Name                      | Description                                                                                   | Type     |
-| ------------------------- | --------------------------------------------------------------------------------------------- | -------- |
-| arn                       | Full ARN of the created bucket.                                                               | `string` |
-| domain_name               | Domain name of the created bucket.                                                            | `string` |
-| kms_key_arn               | ARN of the KMS key used for bucket encryption.                                                | `string` |
-| malware_scanning_role_arn | ARN of the IAM role GuardDuty assumes to scan objects.                                        | `string` |
-| name                      | Name of the created bucket.                                                                   | `string` |
-| replica                   | Replica bucket details, with keys for `arn`, `kms_key_arn`, and `name`. `null` when disabled. | `object` |
+| Name                      | Description                                                             | Type     |
+| ------------------------- | ----------------------------------------------------------------------- | -------- |
+| arn                       | Full ARN of the created bucket.                                         | `string` |
+| domain_name               | Domain name of the created bucket.                                      | `string` |
+| kms_key_arn               | ARN of the KMS key used for bucket encryption.                          | `string` |
+| malware_scanning_role_arn | ARN of the IAM role GuardDuty assumes to scan objects.                  | `string` |
+| name                      | Name of the created bucket.                                             | `string` |
+| replica                   | Replica bucket details. `null` when replication is disabled. See below. | `object` |
+
+### replica
+
+| Name        | Description                                            | Type     |
+| ----------- | ------------------------------------------------------ | -------- |
+| arn         | Full ARN of the replica bucket.                        | `string` |
+| kms_key_arn | ARN of the KMS key used for replica bucket encryption. | `string` |
+| name        | Name of the replica bucket.                            | `string` |
 
 [root-module]: ../../README.md
