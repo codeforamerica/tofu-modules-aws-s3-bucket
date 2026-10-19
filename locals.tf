@@ -46,15 +46,17 @@ locals {
     : "${replace(substr(local.bucket_name, 0, 46), "/-+$/", "")}-${substr(sha1(local.bucket_name), 0, 8)}-replica"
   )
 
-  # Where the replica bucket's key comes from. A caller using their own primary
-  # key provides the replica key too. Otherwise a module-created primary key is
-  # replicated when it's multi-region, and a new key is created when it isn't.
-  # The key's actual multi_region attribute is used, since kms.multi_region is
-  # ignored after the key is created. This only depends on values known at plan
-  # time, so callers can create their replica key in the same apply.
+  # Where the replica bucket's key comes from. A caller-provided key always
+  # wins. Otherwise a module-created primary key is replicated when it's
+  # multi-region, and a new key is created when it isn't. The key's actual
+  # multi_region attribute is used, since kms.multi_region is ignored after the
+  # key is created. kms.create is checked first because it's always known at
+  # plan time, so callers using their own primary key can create the replica
+  # key in the same apply.
   replica_kms_source = (
     !var.replication.enabled ? "none"
     : !var.kms.create ? "provided"
+    : var.replication.kms_arn != null ? "provided"
     : aws_kms_key.bucket["this"].multi_region ? "replica"
     : "create"
   )

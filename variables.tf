@@ -257,9 +257,9 @@ variable "replication" {
       object in the bucket also hides it in the replica.
     - `enabled`: Whether to replicate the bucket to another region.
     - `kms_arn`: ARN of an existing KMS key in the replica region to encrypt the
-      replica bucket. Required when `kms.create` is `false`, and can't be set
-      otherwise. When the module creates the key, it replicates that key if
-      it's multi-region, or creates a new key in the replica region if it isn't.
+      replica bucket. Required when `kms.create` is `false`. When not set, the
+      module replicates its own key if it's multi-region, or creates a new key
+      in the replica region if it isn't.
     - `logging_bucket`: S3 bucket to send the replica bucket's access logs to.
       Must be in the replica region.
     - `logging_cloudwatch_log_group_arn`: ARN of a CloudWatch Logs log group to
@@ -274,11 +274,6 @@ variable "replication" {
   validation {
     condition     = !var.replication.enabled || var.kms.create || var.replication.kms_arn != null
     error_message = "When kms.create is false, replication.kms_arn must be provided."
-  }
-
-  validation {
-    condition     = var.replication.kms_arn == null || !var.kms.create
-    error_message = "replication.kms_arn can only be set when kms.create is false."
   }
 
   validation {
