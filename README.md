@@ -178,16 +178,15 @@ required.
 
 The replica bucket's KMS key is chosen in this order:
 
-1. If `kms_arn` is set, that key is used.
+1. If you're using an existing key for the primary bucket
+   (`kms.create = false`), set `kms_arn` to a key in the replica region. It's
+   required in that case, and can't be set otherwise.
 1. If the module created a multi-region key for the primary bucket, a replica
    of that key is created in the replica region.
 1. If the module created a single-region key for the primary bucket, a new
    single-region key is created in the replica region. The plan emits a warning
    when `kms.multi_region` is `true` but the existing key is single-region,
    since that setting can't be changed after the key is created.
-
-When using an existing key for the primary bucket (`kms.create = false`),
-`kms_arn` is required.
 
 Delete markers aren't replicated by default, so deleting an object in the
 primary bucket doesn't delete it from the replica. Set `delete_markers` to
@@ -202,7 +201,7 @@ objects that already exist in the bucket, run an
 | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------- | ------------ | -------- |
 | delete_markers                   | Whether to replicate delete markers to the replica bucket.                                                                   | `bool`   | `false`      | no       |
 | enabled                          | Whether to replicate the bucket to another region.                                                                           | `bool`   | `false`      | no       |
-| kms_arn                          | ARN of an existing KMS key in the replica region to encrypt the replica bucket. Required when `kms.create` is `false`.       | `string` | `null`       | no       |
+| kms_arn                          | ARN of an existing KMS key in the replica region to encrypt the replica bucket. Only used when `kms.create` is `false`.      | `string` | `null`       | no       |
 | logging_bucket                   | S3 bucket to send the replica bucket's access logs to. Must be in the replica region.                                        | `string` | `null`       | no       |
 | logging_cloudwatch_log_group_arn | ARN of a CloudWatch Logs log group to send the replica bucket's access logs to. Must be in the replica region.               | `string` | `null`       | no       |
 | region                           | Region to replicate to. Defaults to `us-west-2`, or `us-east-1` if the bucket is in a `us-west-*` region.                    | `string` | `null`       | no       |
